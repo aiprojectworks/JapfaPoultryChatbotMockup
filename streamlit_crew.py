@@ -11,7 +11,6 @@ from supabase import create_client, Client
 # Load .env variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-llm = ChatOpenAI(model_name="gpt-4o")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
