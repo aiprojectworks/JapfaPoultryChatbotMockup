@@ -16,6 +16,14 @@ from functools import partial
 import logging
 from datetime import datetime
 
+from supabase import create_client, Client
+from dotenv import load_dotenv
+
+load_dotenv()
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 # basic logging setup
 # logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -153,6 +161,14 @@ logging.basicConfig(
     format='[%(asctime)s] %(levelname)s - %(message)s'
 )
 
+def run_sql(query: str):
+    try:
+        response = supabase_client.rpc("run_sql", {"query": query}).execute()
+        return response.data if response.data else []
+    except Exception as e:
+        print(f"Error running SQL: {e}")
+        return []
+
 # DB Setup
 def init_db(form_definitions_types):
     form_types = {
@@ -161,24 +177,16 @@ def init_db(form_definitions_types):
     }
     sql_block = db_init_agent(form_types)
 
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-
     try:
-        # Split the SQL block into individual CREATE TABLE statements
         statements = [stmt.strip() for stmt in sql_block.split(";") if stmt.strip()]
         for stmt in statements:
-            # If UNIQUE constraint is not present, inject it before the closing bracket
             if "UNIQUE(case_id, user)" not in stmt:
                 stmt = re.sub(r"\)(\s*)$", r",\n    UNIQUE(case_id, user)\1)", stmt)
 
-            print(f"Executing:\n{stmt}\n")
-            c.execute(stmt)
-        conn.commit()
+            print(f"Executing Supabase SQL:\n{stmt}")
+            run_sql(stmt)
     except Exception as e:
-        print("❌ Error executing SQL schema:", e)
-    finally:
-        conn.close()
+        print("❌ Error executing Supabase schema:", e)
         
 def to_sql_field_name(label):
     return re.sub(r'\W+', '_', label.strip().lower())
@@ -193,8 +201,6 @@ def extract_field_names_from_insert(sql):
 async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("⏳ Starting Up Chat Bot. Please wait...")
     user_id = update.effective_user.id
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
 
     # Query to get latest case_id entries per form table for this user
     form_types = {
@@ -210,11 +216,12 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
     
     if not sql:
         raise ValueError("Expected 'unified_output' from SQL agent, got: " + str(sql_json))
-
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute(sql, (str(user_id),) * len(form_definitions))
-    all_cases = c.fetchall()
+    
+    response = supabase_client.rpc("run_sql", {
+        "query": sql,
+        "params": [(str(user_id),) * len(form_definitions)]
+    }).execute()
+    all_cases = response.data or []
 
     incomplete_cases = {}
     for form_name, case_id, _ in all_cases:
@@ -228,28 +235,25 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
         session_data = {"forms": {}}
         for form in form_definitions:
             sql = sql_dict.get(form)
-            c.execute(sql, (case_id, str(user_id)))
-            
-            rows = c.fetchall()
+            response = supabase_client.rpc("run_sql", {
+                "query": sql,
+                "params": [case_id, str(user_id)]
+            }).execute()
+            rows = response.data or []
             if rows:
-                col_names = [desc[0] for desc in c.description]
                 all_fields = {}
-
                 for row in rows:
-                    row_dict = dict(zip(col_names, row))
                     for question_key in form_definitions[form]:
                         col_key = normalize_key(question_key)
-                        val = row_dict.get(col_key)
+                        val = row.get(col_key)
                         if col_key not in all_fields and val is not None and str(val).strip():
                             all_fields[col_key] = str(val)
-
                 session_data["forms"][form] = {
                     question: all_fields.get(normalize_key(question), "")
                     for question in form_definitions[form]
-                    if normalize_key(question) in all_fields
                 }
 
-        complete, missing = is_all_form_data_complete(session_data, form_definitions)
+        complete, _ = is_all_form_data_complete(session_data, form_definitions)
         if not complete:
             incomplete_case_ids.append(case_id)
 
@@ -263,15 +267,14 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
             # Loop to find the latest timestamp across forms for the case
             for form in form_definitions:
                 ts_sql = ts_sql_dict.get(form)
-                c.execute(ts_sql, (case_id, str(user_id)))
-                        
-                row = c.fetchone()
+                response = supabase_client.rpc("run_sql", {
+                    "query": ts_sql,
+                    "params": [case_id, str(user_id)]
+                }).execute()
+                rows = response.data or []
                 if row:
-                    col_names = [desc[0] for desc in c.description]
-                    row_dict = dict(zip(col_names, row))
-                    ts_str = row_dict.get("timestamp")
-                    
-                    if ts_str:
+                    ts_str = rows[0].get("timestamp")
+                    if ts_str and (not latest_ts or ts_str > latest_ts):
                         latest_ts = ts_str
 
             # Fallback if no timestamp is found
@@ -297,8 +300,6 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
         
         # Add final button
         keyboard.append([InlineKeyboardButton("➕ Start New Case", callback_data="start_new_case")])
-        
-        conn.close()
 
         await update.message.reply_text(
             "\n".join(message_lines),
