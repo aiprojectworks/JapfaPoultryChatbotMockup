@@ -110,6 +110,7 @@ Instructions:
 - Do NOT return explanations, only the SQL queries.
 - Return the output in **JSON format** with keys as table names and values as SQL strings.
 - Use lowercase snake_case field names exactly as defined in the schema (not display labels).
+- user should be "user" where it is encapsulated with open inverted commas
 
 --- FORM SCHEMA ---
 {schema}

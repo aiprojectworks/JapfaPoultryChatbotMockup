@@ -217,7 +217,7 @@ def db_init_agent(form_def_type):
 def dynamic_sql_agent(intent, form_def_type):
     def to_sql_field_name(label):
         # Lowercase and replace non-alphanumeric characters with underscores
-        return re.sub(r'\W+', '_', label.strip().lower())
+        return re.sub(r'\W+', '_', label.strip().lower()).strip('_')
 
     def format_form_schema_with_types(form_defs_types):
         shared_fields = [
