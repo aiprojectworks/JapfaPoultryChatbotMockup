@@ -15,7 +15,6 @@ import asyncio
 from functools import partial
 import logging
 from datetime import datetime
-from dateutil.parser import parse as parse_datetime
 
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -179,30 +178,15 @@ def init_db(form_definitions_types):
     sql_block = db_init_agent(form_types)
 
     try:
-        # Split the SQL block into individual CREATE TABLE statements
         statements = [stmt.strip() for stmt in sql_block.split(";") if stmt.strip()]
         for stmt in statements:
-            # If UNIQUE constraint is not present, inject it before the closing bracket
             if "UNIQUE(case_id, user)" not in stmt:
                 stmt = re.sub(r"\)(\s*)$", r",\n    UNIQUE(case_id, user)\1)", stmt)
-                
-            stmt = stmt.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")   
-            stmt = stmt.replace(" user ", " user_id ")
-            stmt = stmt.replace("(user,", "(user_id,")
-            stmt = stmt.replace(", user)", ", user_id)")
-            stmt = stmt.replace("UNIQUE(case_id, user)", "UNIQUE(case_id, user_id)")
-            print(f"Executing on Supabase:\n{stmt}\n")
 
-            response = supabase_client.rpc("run_sql", {
-                "query": stmt
-            }).execute()
-
-            if not response.data:
-                print("⚠️ No response data from Supabase. Possible SQL failure.")
-                print("Full response:", response)
-
+            print(f"Executing Supabase SQL:\n{stmt}")
+            run_sql(stmt)
     except Exception as e:
-        print("❌ Error executing SQL schema on Supabase:", e)
+        print("❌ Error executing Supabase schema:", e)
         
 def to_sql_field_name(label):
     return re.sub(r'\W+', '_', label.strip().lower())
@@ -225,30 +209,18 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
     }
     sql_json = ast.literal_eval(dynamic_sql_agent(intent_dict["get_latest_case_ids_per_form_for_user"], form_types))
     sql = sql_json.get("unified_output")
-    # Patch column names and parameter placeholders
-    user_id_str = str(user_id)
-    sql = re.sub(r"\?", f"'{user_id_str}'", sql)  # Replace ? with $1, $2, ...
-
-    print("📄 SQL about to run for latest case per form:\n", sql)
     
     # Get dynamic SQL for reading data and timestamps
-    # sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_all_form_data_by_case_id_and_user"], form_types))
-    # ts_sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_latest_timestamp_for_case_id_per_form"], form_types))
-    sql_dict = ""
-    ts_sql_dict = ""
+    sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_all_form_data_by_case_id_and_user"], form_types))
+    ts_sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_latest_timestamp_for_case_id_per_form"], form_types))
     
     if not sql:
         raise ValueError("Expected 'unified_output' from SQL agent, got: " + str(sql_json))
     
     response = supabase_client.rpc("run_sql", {
-        "query": sql 
+        "query": sql,
+        "params": [(str(user_id),) * len(form_definitions)]
     }).execute()
-    if not response.data:
-        print("⚠️ No response data from Supabase. Possible SQL failure.")
-        print("Full response:", response)
-    else:
-        print("SUCCCCESSS:", response)
-
     all_cases = response.data or []
 
     incomplete_cases = {}
@@ -263,7 +235,6 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
         session_data = {"forms": {}}
         for form in form_definitions:
             sql = sql_dict.get(form)
-            print("Retrieve all saved answers where both userid and case match HHHHH:", sql)
             response = supabase_client.rpc("run_sql", {
                 "query": sql,
                 "params": [case_id, str(user_id)]
@@ -296,13 +267,12 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
             # Loop to find the latest timestamp across forms for the case
             for form in form_definitions:
                 ts_sql = ts_sql_dict.get(form)
-                print("TS_SQL:", ts_sql)
                 response = supabase_client.rpc("run_sql", {
                     "query": ts_sql,
                     "params": [case_id, str(user_id)]
                 }).execute()
                 rows = response.data or []
-                if rows:
+                if row:
                     ts_str = rows[0].get("timestamp")
                     if ts_str and (not latest_ts or ts_str > latest_ts):
                         latest_ts = ts_str
@@ -312,11 +282,7 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
                 print(f"[WARN] No timestamp found for case {case_id}, using current time as fallback.")
                 latest_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            try:
-                dt_obj = parse_datetime(latest_ts)
-            except Exception as e:
-                print(f"❌ Failed to parse timestamp: {latest_ts} — {e}")
-                dt_obj = datetime.now()
+            dt_obj = datetime.strptime(latest_ts, "%Y-%m-%d %H:%M:%S")
             case_details.append((case_id, dt_obj))
 
         # Sort by datetime descending
@@ -355,6 +321,7 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = query.from_user.id
     case_id = query.data.split(":")[1]
 
+    # Fetch all data into user_session_data
     session_data = {
         "forms": {},
         "current_form": "",
@@ -362,34 +329,34 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
         "case_id": case_id
     }
 
-    latest_ts = None
-
-    form_types = {
-        form: {q: meta["type"] for q, meta in fields.items()}
-        for form, fields in form_definitions.items()
-    }
-    sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_all_form_data_by_case_id_and_user"], form_types))
-
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    latest_ts = None  
+    
     for form in form_definitions:
-        query_sql = sql_dict.get(form)
-        response = supabase_client.rpc("run_sql", {
-            "query": query_sql,
-            "params": [case_id, str(user_id)]
-        }).execute()
-        rows = response.data or []
-
+        form_types = {
+            form: {q: meta["type"] for q, meta in fields.items()}
+            for form, fields in form_definitions.items()
+        }
+        sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_all_form_data_by_case_id_and_user"], form_types))
+        sql = sql_dict.get(form)
+        c.execute(sql, (case_id, str(user_id)))
+        
+        rows = c.fetchall()
         if rows:
+            col_names = [desc[0] for desc in c.description]
             all_fields = {}
             latest_ts_in_form = None
 
             for row in rows:
-                ts = row.get("timestamp")
+                row_dict = dict(zip(col_names, row))
+                ts = row_dict.get("timestamp")
                 if ts and (not latest_ts_in_form or ts > latest_ts_in_form):
                     latest_ts_in_form = ts
 
                 for question_key in form_definitions[form]:
                     col_key = normalize_key(question_key)
-                    val = row.get(col_key)
+                    val = row_dict.get(col_key)
                     if col_key not in all_fields and val is not None and str(val).strip():
                         all_fields[col_key] = str(val)
 
@@ -399,8 +366,10 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
                 if normalize_key(question) in all_fields
             }
 
-            if not latest_ts or (latest_ts_in_form and latest_ts_in_form > latest_ts):
+            # Update latest_ts for the case (for correct sorting)
+            if not latest_ts or latest_ts_in_form > latest_ts:
                 latest_ts = latest_ts_in_form
+    conn.close()
 
     user_session_data[user_id] = session_data
     await query.edit_message_text(f"✅ Resumed case {case_id[:8]}. Let's continue.")
@@ -420,12 +389,6 @@ def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
 
         # Extract expected field names from SQL
         field_names = extract_field_names_from_insert(sql)
-        
-        # Replace 'user' with 'user_id' in SQL and field list
-        # Ensure "user" is properly quoted everywhere
-        sql = re.sub(r'\buser\b', '"user"', sql)
-        sql = re.sub(r'\bexcluded\.user\b', 'excluded."user"', sql)
-        sql = re.sub(r'\bON CONFLICT\(case_id, "user"\)', 'ON CONFLICT(case_id, "user")', sql)
 
         # Build value map including case_id and user
         value_map = {
@@ -433,46 +396,29 @@ def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
             "user": str(user_id),
             **normalized_data
         }
-
+        
         # Force timestamp update if used in SQL
         if "timestamp" in field_names:
             value_map["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Determine which fields to include in VALUES based on SQL content
+        # Only exclude timestamp if it's hardcoded in SQL
         exclude_ts = "CURRENT_TIMESTAMP" in sql.upper()
+        
         if exclude_ts:
             fields_without_timestamp = [f for f in field_names if f != "timestamp"]
         else:
-            fields_without_timestamp = field_names
-
+            fields_without_timestamp = field_names  # Include timestamp as a value
+        
         values = [value_map.get(field, None) for field in fields_without_timestamp]
-        
-        # Manually build VALUES clause
-        values_clause = []
-        for field in field_names:
-            val = value_map.get(field)
-            if val is None:
-                values_clause.append("NULL")
-            elif isinstance(val, (int, float)):
-                values_clause.append(str(val))
-            else:
-                val_str = str(val).replace("'", "''")  # Escape single quotes
-                values_clause.append(f"'{val_str}'")
-        
-        values_clause_str = ", ".join(values_clause)
-        sql = re.sub(r"VALUES\s*\((.*?)\)", f"VALUES ({values_clause_str})", sql, flags=re.IGNORECASE)
 
         print("FINAL SQL:", sql)
         print("VALUES:", values)
 
-        # Execute via Supabase RPC
-        response = supabase_client.rpc("run_sql", {
-            "query": sql
-        }).execute()
-
-        if not response.data:
-            print("⚠️ No response data from Supabase. Possible SQL failure.")
-            print("Full response:", response)
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute(sql, values)
+        conn.commit()
+        conn.close()
 
     except Exception as e:
         print("❌ Error executing dynamic SQL:", e)
@@ -885,28 +831,29 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
     case_id = session["case_id"]
 
     try:
-        # Generate dynamic DELETE SQL
+        # Prepare dynamic DELETE SQL
         form_types = {
             form: {q: meta["type"] for q, meta in fields.items()}
             for form, fields in form_definitions.items()
         }
         sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["delete_case_by_user_and_case_id"], form_types))
-
-        for form, sql in sql_dict.items():
-            response = supabase_client.rpc("run_sql", {
-                "query": sql,
-                "params": [str(user_id), case_id]
-            }).execute()
-
-            if not response.data:
-                print("⚠️ No response data from Supabase. Possible SQL failure.")
-                print("Full response:", response)
+        
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        try:
+            for form, sql in sql_dict.items():
+                c.execute(sql, (case_id, str(user_id)))  # Note: SQL should have WHERE user = ? AND case_id = ?
+            conn.commit()
+        except Exception as e:
+            logger.error(f"❌ Failed dynamic delete SQL: {e}", exc_info=True)
+            await query.edit_message_text("⚠️ Failed to delete case due to a system error.")
+            return SELECTING_FORM
+        finally:
+            conn.close()
 
         user_session_data.pop(user_id, None)
-        await query.edit_message_text(
-            f"🗑️ Case `{case_id[:8]}` has been permanently deleted.",
-            parse_mode="Markdown"
-        )
+        await query.edit_message_text(f"🗑️ Case `{case_id[:8]}` has been permanently deleted.", parse_mode="Markdown")
         return ConversationHandler.END
 
     except Exception as e:
@@ -915,8 +862,11 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
         return SELECTING_FORM
 
 def main():
-    print("🔁 Initializing tables on Supabase (idempotent)...")
-    # init_db(form_definitions)
+    if not os.path.exists(DB_PATH):
+        print("Database not found. Initializing...")
+        init_db(form_definitions)
+    else:
+        print("Database already exists. Skipping initialization.")
         
     app = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
     
