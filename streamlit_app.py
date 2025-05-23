@@ -12,13 +12,16 @@ else:
 
 import streamlit as st
 import re
-from streamlit_crew import (
+from Sales.streamlit_crew import (
     generate_individual_case_summary,
     generate_report_for_forms,
     generate_summary_of_all_issues,
     generate_report_from_prompt,
     generate_and_execute_sql,
-    execute_case_closing
+    execute_case_closing,
+    execute_case_escalation,
+    generate_case_summary_for_email,
+    send_escalation_email
 )
 
 schema = """
@@ -40,7 +43,7 @@ st.title("🐔 Poultry Case Reporting Dashboard")
 st.sidebar.header("Navigation")
 main_action = st.sidebar.radio(
     "Select Action:",
-    ["Generate Report", "Close Case"]
+    ["Generate Report", "Close Case", "Escalate Case"]
 )
 
 if main_action == "Generate Report":
@@ -112,7 +115,7 @@ if main_action == "Generate Report":
 
 elif main_action == "Close Case":
     st.subheader("Close a Case")
-    case_id_to_close = st.number_input("Enter Case ID to close", min_value=1, step=1)
+    case_id_to_close = st.text_input("Enter Case ID")
     close_reason = st.text_input("Enter Reason for Closing")
 
     if st.button("Close Case"):
@@ -122,3 +125,18 @@ elif main_action == "Close Case":
                 st.success(f"Case {case_id_to_close} successfully closed.")
         else:
             st.warning("Please enter both a valid Case ID and a close reason.")
+
+elif main_action == "Escalate Case":
+    st.subheader("Escalate a Case")
+    case_id_to_escalate = st.text_input("Enter Case ID to Escalate")
+    escalation_reason = st.text_area("Enter Reason for Escalation")
+
+    if st.button("Escalate Case"):
+        if case_id_to_escalate and escalation_reason:
+            case_info = generate_case_summary_for_email(case_id_to_escalate)
+            success = send_escalation_email(case_id_to_escalate, escalation_reason, case_info)
+            result = execute_case_escalation(case_id_to_escalate)
+            with st.spinner("Escalating case..."):
+                st.success(f"Case {case_id_to_escalate} successfully escalated.")
+        else:
+            st.warning("Please enter both a valid Case ID and an escalation reason.")
