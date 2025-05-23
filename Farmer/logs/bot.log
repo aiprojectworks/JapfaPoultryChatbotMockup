@@ -1,66 +1,129 @@
-[2025-05-23 03:36:40,766] INFO - 
+[2025-05-23 10:16:27,875] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getMe "HTTP/1.1 200 OK"
+[2025-05-23 10:16:28,073] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/deleteWebhook "HTTP/1.1 200 OK"
+[2025-05-23 10:16:28,073] INFO - Application started
+[2025-05-23 10:16:28,699] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:29,087] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:30,182] INFO - 
 LiteLLM completion() model= gpt-4o; provider = openai
-[2025-05-23 03:36:43,163] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-[2025-05-23 03:36:43,309] INFO - Wrapper: Completed Call, calling success_handler
-[2025-05-23 03:36:43,310] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:43,310] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:43,310] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:43,708] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:43,742] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:43,763] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:44,309] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getMe "HTTP/1.1 200 OK"
-[2025-05-23 03:36:44,474] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/deleteWebhook "HTTP/1.1 200 OK"
-[2025-05-23 03:36:44,475] INFO - Application started
-[2025-05-23 03:36:45,020] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:36:45,366] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
-[2025-05-23 03:36:45,402] INFO - 
+[2025-05-23 10:16:32,744] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:16:32,775] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:16:33,779] INFO - 
 LiteLLM completion() model= gpt-4o; provider = openai
-[2025-05-23 03:36:48,144] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-[2025-05-23 03:36:48,145] INFO - Wrapper: Completed Call, calling success_handler
-[2025-05-23 03:36:48,145] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:48,146] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:48,196] INFO - 
+[2025-05-23 10:16:35,766] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:16:35,766] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:16:36,836] INFO - 
 LiteLLM completion() model= gpt-4o; provider = openai
-[2025-05-23 03:36:50,038] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-[2025-05-23 03:36:50,040] INFO - Wrapper: Completed Call, calling success_handler
-[2025-05-23 03:36:50,041] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:50,041] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:50,042] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:50,089] INFO - 
+[2025-05-23 10:16:38,818] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:16:38,818] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:16:39,842] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:39,923] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:39,990] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,052] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,119] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,170] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,252] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,317] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,369] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,420] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,487] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,569] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,619] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,673] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,752] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,817] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,885] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:40,959] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:41,009] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:41,009] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:41,816] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:44,716] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:45,066] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/answerCallbackQuery "HTTP/1.1 200 OK"
+[2025-05-23 10:16:45,438] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:16:45,500] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:45,552] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:45,642] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:16:46,014] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:16:46,400] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:47,990] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:48,331] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/answerCallbackQuery "HTTP/1.1 200 OK"
+[2025-05-23 10:16:48,700] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:16:49,820] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:50,174] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/answerCallbackQuery "HTTP/1.1 200 OK"
+[2025-05-23 10:16:50,566] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:16:51,731] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:52,111] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:52,487] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:52,876] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:53,819] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:54,195] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/answerCallbackQuery "HTTP/1.1 200 OK"
+[2025-05-23 10:16:54,664] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:16:55,796] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:16:56,197] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/answerCallbackQuery "HTTP/1.1 200 OK"
+[2025-05-23 10:16:56,586] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:16:57,562] INFO - 
 LiteLLM completion() model= gpt-4o; provider = openai
-[2025-05-23 03:36:52,302] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-[2025-05-23 03:36:52,304] INFO - Wrapper: Completed Call, calling success_handler
-[2025-05-23 03:36:52,304] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:52,304] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:52,305] INFO - selected model name for cost calculation: openai/gpt-4o-2024-08-06
-[2025-05-23 03:36:52,404] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,435] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,469] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,492] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,522] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,549] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,576] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,610] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,651] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,672] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,694] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,721] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,753] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,787] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,809] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,834] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,863] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,897] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:52,925] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co//rest/v1/rpc/run_sql "HTTP/2 200 OK"
-[2025-05-23 03:36:53,658] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
-[2025-05-23 03:36:55,196] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:37:05,369] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:37:15,544] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:37:25,720] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:37:35,896] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:37:46,069] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:37:56,242] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:38:06,415] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:38:16,588] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:38:26,761] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
-[2025-05-23 03:38:36,938] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:01,309] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:17:01,325] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:17:01,477] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:01,550] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:01,612] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:02,552] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:17:05,998] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:10,877] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:11,676] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:17:12,795] INFO - 
+LiteLLM completion() model= gpt-4o; provider = openai
+[2025-05-23 10:17:15,033] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:17:15,048] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:17:16,072] INFO - 
+LiteLLM completion() model= gpt-4o; provider = openai
+[2025-05-23 10:17:18,514] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:17:18,514] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:17:19,506] INFO - 
+LiteLLM completion() model= gpt-4o; provider = openai
+[2025-05-23 10:17:21,209] INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2025-05-23 10:17:21,225] INFO - Wrapper: Completed Call, calling success_handler
+[2025-05-23 10:17:21,389] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,440] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,496] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,557] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,623] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,673] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,725] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,779] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,841] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,908] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:21,973] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,040] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,090] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,140] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,183] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,241] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,306] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,362] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,422] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:22,422] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:23,222] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:17:26,953] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:27,336] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/answerCallbackQuery "HTTP/1.1 200 OK"
+[2025-05-23 10:17:27,720] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:17:27,837] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:27,921] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:27,995] INFO - HTTP Request: POST https://auqqnqqaozwzzomepnih.supabase.co/rest/v1/rpc/run_sql "HTTP/2 200 OK"
+[2025-05-23 10:17:28,363] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/editMessageText "HTTP/1.1 200 OK"
+[2025-05-23 10:17:28,771] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/sendMessage "HTTP/1.1 200 OK"
+[2025-05-23 10:17:37,199] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:47,406] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:17:57,610] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:18:07,814] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:18:18,067] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:18:28,273] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:18:38,496] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:18:48,699] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:18:58,915] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:19:09,108] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:19:19,350] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:19:29,583] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:19:35,376] INFO - HTTP Request: POST https://api.telegram.org/bot7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs/getUpdates "HTTP/1.1 200 OK"
+[2025-05-23 10:19:35,376] INFO - Application is stopping. This might take a moment.
+[2025-05-23 10:19:35,376] INFO - Application.stop() complete

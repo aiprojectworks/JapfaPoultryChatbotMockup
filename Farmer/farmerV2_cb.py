@@ -256,26 +256,23 @@ def extract_field_names_from_insert(sql):
     field_str = match.group(1)
     return [field.strip() for field in field_str.split(",")]
 
+def safely_replace_case_user(sql: str, case_id: str, user_id: str) -> str:
+    # Replace quoted placeholders like 'case_id' and 'user_id'
+    sql = sql.replace("'case_id'", f"'{case_id}'")
+    sql = sql.replace('"case_id"', f"'{case_id}'")
+    sql = sql.replace("'user_id'", f"'{user_id}'")
+    sql = sql.replace('"user_id"', f"'{user_id}'")
+    # Handle edge cases where placeholder might appear without quotes
+    sql = re.sub(r"\bcase_id\s*=\s*case_id\b", f"case_id = '{case_id}'", sql)
+    sql = re.sub(r"\buser\s*=\s*user\b", f"user = '{user_id}'", sql)
+    # Replace ? if used
+    placeholders = [case_id, user_id]
+    sql = re.sub(r"\?", lambda m: f"'{placeholders.pop(0)}'", sql)
+    return sql
+
 async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("⏳ Starting Up Chat Bot. Please wait...")
     user_id = update.effective_user.id
-    
-    def safely_replace_case_user(sql: str, case_id: str, user_id: str) -> str:
-        # Replace quoted placeholders like 'case_id' and 'user_id'
-        sql = sql.replace("'case_id'", f"'{case_id}'")
-        sql = sql.replace('"case_id"', f"'{case_id}'")
-        sql = sql.replace("'user_id'", f"'{user_id}'")
-        sql = sql.replace('"user_id"', f"'{user_id}'")
-
-        # Handle edge cases where placeholder might appear without quotes
-        sql = re.sub(r"\bcase_id\s*=\s*case_id\b", f"case_id = '{case_id}'", sql)
-        sql = re.sub(r"\buser\s*=\s*user\b", f"user = '{user_id}'", sql)
-
-        # Replace ? if used
-        placeholders = [case_id, user_id]
-        sql = re.sub(r"\?", lambda m: f"'{placeholders.pop(0)}'", sql)
-
-        return sql
 
     # Query to get latest case_id entries per form table for this user
     form_types = {
@@ -296,6 +293,7 @@ async def check_for_incomplete_cases(update: Update, context: ContextTypes.DEFAU
     
     # Get dynamic SQL for reading data and timestamps
     sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_all_form_data_by_case_id_and_user"], form_types))
+    context.user_data["sql_dict"] = sql_dict
     ts_sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_latest_timestamp_for_case_id_per_form"], form_types))
     
     if not sql:
@@ -451,6 +449,7 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
     await query.edit_message_text("⏳ Resuming your case. Please wait...")
     user_id = query.from_user.id
     case_id = query.data.split(":")[1]
+    user_id_str = str(user_id)
 
     session_data = {
         "forms": {},
@@ -465,16 +464,22 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
         form: {q: meta["type"] for q, meta in fields.items()}
         for form, fields in form_definitions.items()
     }
-    sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["get_all_form_data_by_case_id_and_user"], form_types))
+    
+    sql_dict = context.user_data.get("sql_dict", {})
 
     for form in form_definitions:
-        query_sql = sql_dict.get(form)
+        sql = sql_dict.get(form)
+        sql = sql_dict.get(form)
+        sql = safely_replace_case_user(sql, case_id, user_id_str)
+        sql = sql.replace(" user ", " user_id ")
+        sql = sql.replace("(user,", "(user_id,")
+        sql = sql.replace(", user)", ", user_id)")
+        sql = sql.replace("UNIQUE(case_id, user)", "UNIQUE(case_id, user_id)")
         response = supabase_client.rpc("run_sql", {
-            "query": query_sql,
-            "params": [case_id, str(user_id)]
+            "query": sql
         }).execute()
         rows = response.data or []
-
+        print("RESUME_ROWS:",rows)
         if rows:
             all_fields = {}
             latest_ts_in_form = None
@@ -505,6 +510,11 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
 
 def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
     sql_template = sql_dict.get(form)
+    sql_template = sql_template.replace('"user"', 'user_id') \
+                           .replace(' user ', ' user_id ') \
+                           .replace('(user,', '(user_id,') \
+                           .replace(', user)', ', user_id)') \
+                           .replace('ON CONFLICT(case_id, "user")', 'ON CONFLICT(case_id, user_id)')
     if not sql_template:
         print(f"No SQL returned for form: {form}")
         return
@@ -515,11 +525,12 @@ def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
 
         # Extract column names from SQL
         field_names = extract_field_names_from_insert(sql_template)
+        field_names = ["user_id" if col == "user" else col for col in field_names]
 
         # Build value map with additional fields
         value_map = {
             "case_id": case_id,
-            "user": str(user_id),
+            "user_id": str(user_id),
             **normalized_data
         }
 
@@ -540,7 +551,7 @@ def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
                 values_clause.append(f"'{escaped_val}'")
 
         # Build final SQL string manually
-        columns = ", ".join(f'"{col}"' if col == "user" else col for col in field_names)
+        columns = ", ".join(f'"{col}"' for col in field_names)
         values = ", ".join(values_clause)
 
         # Extract ON CONFLICT clause from the original template
@@ -1006,7 +1017,7 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 def main():
     print("🔁 Initializing tables on Supabase (idempotent)...")
-    init_db(form_definitions)
+    # init_db(form_definitions)
     
     # print_all_table_data()
         
