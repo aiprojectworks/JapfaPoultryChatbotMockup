@@ -27,8 +27,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-import sys
-sys.modules['sqlite3'] = sys.module.pop('pysqlite3')
+# import sys
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # basic logging setup
 # logging.basicConfig(level=logging.INFO)
