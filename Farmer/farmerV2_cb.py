@@ -21,6 +21,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from pydantic import PrivateAttr
 import sqlite3
+import streamlit as st
 
 import sys
 
@@ -35,8 +36,8 @@ else:
     import sqlite3
 
 load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_URL = st.secrets("SUPABASE_URL")
+SUPABASE_KEY = st.secrets("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # basic logging setup
