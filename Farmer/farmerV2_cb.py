@@ -22,13 +22,22 @@ from dotenv import load_dotenv
 from pydantic import PrivateAttr
 import sqlite3
 
+import sys
+
+try:
+    import pysqlite3
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # Fall back to built-in sqlite3 on Windows or if pysqlite3 is not installed
+    import sqlite3
+else:
+    # Now sqlite3 refers to pysqlite3
+    import sqlite3
+
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # basic logging setup
 # logging.basicConfig(level=logging.INFO)
