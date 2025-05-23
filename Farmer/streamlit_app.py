@@ -8,6 +8,9 @@ from streamlit_autorefresh import st_autorefresh
 LOG_FILE = "logs/bot.log"
 BOT_SCRIPT = "farmerV2_cb.py"
 
+# import sys
+# sys.modules['sqlite3'] = sys.module.pop('pysqlite3')
+
 # Function to start bot
 def start_bot():
     env = os.environ.copy()

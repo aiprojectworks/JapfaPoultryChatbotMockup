@@ -414,7 +414,8 @@ def validation_agent(question: str, answer: str, form_def: dict, form_val: dict)
         2. Not suspicious, empty, or illogical
         
         It is okay to let the answer be valid if there are mispellings and typographical errors whilst adhering to the above criteria
-        **Mispellings and typographical errors should not dictate if a answer is invalid**
+        **Mispellings and typographical errors should not be a reason a answer is invalid**
+        Significant Mispellings and typographical errors ARE OKAY and ACCEPTABLE
 
         Return exactly one of:
         - ✅ Valid

@@ -471,6 +471,8 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
         sql = sql_dict.get(form)
         sql = sql_dict.get(form)
         sql = safely_replace_case_user(sql, case_id, user_id_str)
+        sql = sql.replace("user", "user_id")
+        sql = sql.replace("'user'", "'user_id'")
         sql = sql.replace(" user ", " user_id ")
         sql = sql.replace("(user,", "(user_id,")
         sql = sql.replace(", user)", ", user_id)")
@@ -607,21 +609,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, preserve_ses
 
     all_done = completed_forms == total_forms
     header = f"📋 You have completed {completed_forms}/{total_forms} forms."
+    message = ""
+    
     if all_done:
         header += "\n✅ All forms completed! Ready to submit."
+        message = f"{header}\n\n" + "\n".join(form_status_lines)
+    else:
+        message = f"{header}\n\n" + "\n".join(form_status_lines)
         
     keyboard = [[InlineKeyboardButton(name.replace("_", " ").title(), callback_data=f"form:{name}")]
                 for name in form_definitions.keys()]
-    keyboard.append([InlineKeyboardButton("💾 Save and Quit", callback_data="save_quit")])
+    if not all_done:
+        keyboard.append([InlineKeyboardButton("💾 Save and Quit", callback_data="save_quit")])
+    else:
+        # Optional: Add disabled info
+        keyboard.append([InlineKeyboardButton("💾 Save (Disabled)", callback_data="noop_disabled_save")])
     keyboard.append([InlineKeyboardButton("📩 Submit & Email", callback_data="submit_and_email")])
     keyboard.append([InlineKeyboardButton("🗑️ Delete Case", callback_data="delete_case_menu")])
     
     message = f"{header}\n\n" + "\n".join(form_status_lines)
         
     if update.message:
-        await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
+        await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
     elif update.callback_query:
-        await update.callback_query.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
+        await update.callback_query.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
     return SELECTING_FORM
 
 # Form selection
@@ -823,7 +834,7 @@ def is_all_form_data_complete(session: dict, form_definitions: dict) -> tuple[bo
         answers = forms_data.get(form_name, {})
         for question_key in fields:
             norm_key = normalize_key(question_key)
-            value = answers.get(norm_key)
+            value = answers.get(norm_key) or answers.get(question_key)
             if value is None or not str(value).strip():
                 missing_fields.append((form_name, question_key))
     
@@ -1035,6 +1046,7 @@ def main():
                 CallbackQueryHandler(start, pattern="^start_new_case$"),
                 CallbackQueryHandler(delete_case_menu, pattern="^delete_case_menu$"),
                 CallbackQueryHandler(confirm_delete_case, pattern="^confirm_delete_case:(yes|no)$"),
+                CallbackQueryHandler(lambda update, context: update.callback_query.answer("All forms completed. You can now submit or edit answers."), pattern="^noop_disabled_save$")
             ],
             SELECTING_QUESTION: [
                 CallbackQueryHandler(select_question, pattern="^question:"),
