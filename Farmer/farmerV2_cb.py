@@ -736,7 +736,12 @@ async def enter_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if validator and not validator(answer):
         dynamic_error = local_validator(question, validator)
         await update.message.reply_text(dynamic_error)
-        await update.message.reply_text(field_meta["question"])
+                    
+        question_text = field_meta["question"] + "\n\n✍️ Please type your answer below."
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Return to Question Menu", callback_data="return_to_question_menu")]
+        ])
+        await update.message.reply_text(question_text, reply_markup=keyboard)
         return ENTERING_ANSWER
 
     # Step 2: Run AI-based validator (only if marked to use agent)
@@ -754,7 +759,12 @@ async def enter_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Handle invalid/suspicious result
         if not validator_output.strip().startswith("✅"):
             await update.message.reply_text(processed_answer or validator_output)
-            await update.message.reply_text(field_meta["question"])
+
+            question_text = field_meta["question"] + "\n\n✍️ Please type your answer below."
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔙 Return to Question Menu", callback_data="return_to_question_menu")]
+            ])
+            await update.message.reply_text(question_text, reply_markup=keyboard)
             return ENTERING_ANSWER
 
         # If valid and autocorrected, update answer
