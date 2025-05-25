@@ -36,6 +36,7 @@ else:
     import sqlite3
 
 load_dotenv()
+#st.secrets()
 SUPABASE_URL = st.secrets("SUPABASE_URL")
 SUPABASE_KEY = st.secrets("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -482,7 +483,6 @@ async def resume_existing_case(update: Update, context: ContextTypes.DEFAULT_TYP
     sql_dict = context.user_data.get("sql_dict", {})
 
     for form in form_definitions:
-        sql = sql_dict.get(form)
         sql = sql_dict.get(form)
         sql = safely_replace_case_user(sql, case_id, user_id_str)
         sql = sql.replace("user", "user_id")
@@ -997,6 +997,7 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.answer()
     await query.edit_message_text("⏳ Deleting your case. Please wait...")
     user_id = query.from_user.id
+    user_id_str = str(user_id)
     decision = query.data.split(":")[1]
 
     if decision == "no":
@@ -1019,9 +1020,16 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
         sql_dict = ast.literal_eval(dynamic_sql_agent(intent_dict["delete_case_by_user_and_case_id"], form_types))
 
         for form, sql in sql_dict.items():
+            sql = sql_dict.get(form)
+            sql = safely_replace_case_user(sql, case_id, user_id_str)
+            sql = sql.replace("user", "user_id")
+            sql = sql.replace("'user'", "'user_id'")
+            sql = sql.replace(" user ", " user_id ")
+            sql = sql.replace("(user,", "(user_id,")
+            sql = sql.replace(", user)", ", user_id)")
+            print("DELETE SQL:", sql)
             response = supabase_client.rpc("run_sql", {
-                "query": sql,
-                "params": [str(user_id), case_id]
+                "query": sql
             }).execute()
 
             if not response.data:
