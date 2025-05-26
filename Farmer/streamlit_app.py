@@ -1,19 +1,5 @@
-import streamlit as st
-import subprocess
-import threading
-import time
-import os
-import sqlite3
-import sqlite3
-from streamlit_autorefresh import st_autorefresh
-from farmerV2_cb import *
-from farmer_agents import *
-
-LOG_FILE = "logs/bot.log"
-BOT_SCRIPT = "farmerV2_cb.py"
-
 import sys
-
+import pysqlite3 as sqlite3
 try:
     import pysqlite3
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
@@ -23,6 +9,18 @@ except ImportError:
 else:
     # Now sqlite3 refers to pysqlite3
     import sqlite3
+import streamlit as st
+import subprocess
+import threading
+import time
+import os
+from streamlit_autorefresh import st_autorefresh
+from farmerV2_cb import *
+from farmer_agents import *
+
+LOG_FILE = "logs/bot.log"
+BOT_SCRIPT = "farmerV2_cb.py"
+
 
 # Function to start bot
 def start_bot():

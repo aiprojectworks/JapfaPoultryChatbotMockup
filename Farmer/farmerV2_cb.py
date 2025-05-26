@@ -1,6 +1,15 @@
 import os
-import sqlite3
-import sqlite3
+import pysqlite3 as sqlite3
+import sys
+try:
+    import pysqlite3
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # Fall back to built-in sqlite3 on Windows or if pysqlite3 is not installed
+    import sqlite3
+else:
+    # Now sqlite3 refers to pysqlite3
+    import sqlite3
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, MessageHandler,
@@ -22,18 +31,6 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from pydantic import PrivateAttr
 import streamlit as st
-
-import sys
-
-try:
-    import pysqlite3
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-except ImportError:
-    # Fall back to built-in sqlite3 on Windows or if pysqlite3 is not installed
-    import sqlite3
-else:
-    # Now sqlite3 refers to pysqlite3
-    import sqlite3
 
 load_dotenv()
 #st.secrets()
