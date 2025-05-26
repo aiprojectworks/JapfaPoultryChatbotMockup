@@ -1089,15 +1089,15 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 def run_bot(write_log=None):
     import asyncio
-    from telegram.ext import Application
+    from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ConversationHandler, filters
 
     asyncio.set_event_loop(asyncio.new_event_loop())
+    loop = asyncio.get_event_loop()
 
     async def bot_main():
-        # Create the application
         application = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
 
-        # Register the conversation handler
+        # Your ConversationHandler setup
         conv = ConversationHandler(
             entry_points=[CommandHandler("start", check_for_incomplete_cases)],
             states={
@@ -1127,9 +1127,27 @@ def run_bot(write_log=None):
 
         application.add_handler(conv)
 
+        # Run polling without signal handling (safe for background thread)
+        write_log and write_log("🤖 Initializing bot polling loop...")
         await application.initialize()
         await application.start()
-        write_log and write_log("🤖 Bot is now running inside Streamlit!")
-        await application.updater.start_polling()
+        await application.updater.start_polling()  # Safe even without idle()
+        write_log and write_log("✅ Bot is now running!")
 
-    asyncio.get_event_loop().run_until_complete(bot_main())
+        # Keep running until Streamlit session ends
+        while True:
+            await asyncio.sleep(1)
+
+    try:
+        loop.run_until_complete(bot_main())
+    except RuntimeError as e:
+        print("RuntimeError in bot:", e)
+    finally:
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            task.cancel()
+        try:
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+        except Exception as e:
+            print("Error cleaning up pending tasks:", e)
+        loop.close()
