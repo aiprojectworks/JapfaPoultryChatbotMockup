@@ -16,6 +16,17 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import streamlit as st
+import sys
+
+try:
+    import pysqlite3
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # Fall back to built-in sqlite3 on Windows or if pysqlite3 is not installed
+    import sqlite3
+else:
+    # Now sqlite3 refers to pysqlite3
+    import sqlite3
 
 # Load API key from .env
 load_dotenv()

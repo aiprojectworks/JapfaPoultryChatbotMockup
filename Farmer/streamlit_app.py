@@ -6,13 +6,22 @@ import os
 from streamlit_autorefresh import st_autorefresh
 from farmerV2_cb import *
 from farmer_agents import *
-
+import sqlite3
 
 LOG_FILE = "logs/bot.log"
 BOT_SCRIPT = "farmerV2_cb.py"
 
-# import sys
-# sys.modules['sqlite3'] = sys.module.pop('pysqlite3')
+import sys
+
+try:
+    import pysqlite3
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # Fall back to built-in sqlite3 on Windows or if pysqlite3 is not installed
+    import sqlite3
+else:
+    # Now sqlite3 refers to pysqlite3
+    import sqlite3
 
 # Function to start bot
 def start_bot():
