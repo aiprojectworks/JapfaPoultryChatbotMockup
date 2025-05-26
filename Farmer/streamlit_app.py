@@ -15,55 +15,60 @@ import threading
 import time
 import os
 from streamlit_autorefresh import st_autorefresh
-from farmerV2_cb import *
+from farmerV2_cb import run_bot
 from farmer_agents import *
 
-LOG_FILE = "logs/bot.log"
-BOT_SCRIPT = "farmerV2_cb.py"
 
+# Session-based logging instead of file-based
+def write_log(message):
+    if "logs" not in st.session_state:
+        st.session_state.logs = []
+    timestamp = time.strftime("%H:%M:%S")
+    st.session_state.logs.append(f"[{timestamp}] {message}")
 
-# Function to start bot
+def read_logs():
+    return "\n".join(st.session_state.get("logs", []))
+
+# Function to start bot (using imported run_bot, not subprocess)
 def start_bot():
-    env = os.environ.copy()
-    env["PYTHONIOENCODING"] = "utf-8"
-    subprocess.Popen(["python", BOT_SCRIPT], env=env)
+    write_log("🔄 Bot is starting...")
+    try:
+        run_bot(write_log=write_log)  # Inject log handler into your bot logic
+    except Exception as e:
+        write_log(f"❌ Error: {e}")
 
-# Initial state
+# Init state
 if "bot_started" not in st.session_state:
     st.session_state.bot_started = False
 
-# Sidebar controls
+if "log_clear_time" not in st.session_state:
+    st.session_state.log_clear_time = None
+
+# Sidebar
 st.sidebar.title("🛠️ Bot Control")
+
 if st.sidebar.button("▶️ Start Telegram Bot"):
     if not st.session_state.bot_started:
         st.session_state.bot_started = True
-        threading.Thread(target=start_bot, daemon=True).start()
+        threading.Thread(target=lambda: run_bot(write_log=write_log), daemon=True).start()
         st.sidebar.success("✅ Bot started.")
     else:
         st.sidebar.info("ℹ️ Bot already running.")
 
-# Initialize session state for message
-if "log_clear_time" not in st.session_state:
-    st.session_state.log_clear_time = None
-
-# Clear Logs Button
 if st.sidebar.button("🧹 Clear Logs"):
-    open(LOG_FILE, "w", encoding="utf-8").close()
+    st.session_state.logs = []
     st.session_state.log_clear_time = time.time()
 
-# Show temporary message (5 seconds max)
 if st.session_state.log_clear_time:
-    elapsed = time.time() - st.session_state.log_clear_time
-    if elapsed < 5:
+    if time.time() - st.session_state.log_clear_time < 5:
         st.sidebar.success("🧼 Logs cleared.")
     else:
-        st.session_state.log_clear_time = None  # Clear after 5 seconds
-        
-        
-# Log display title
+        st.session_state.log_clear_time = None
+
+# Main area
 st.title("📋 Real-time Bot Logs")
 
-# CSS for styled container with auto-scroll
+# Style
 st.markdown(
     """
     <style>
@@ -79,30 +84,14 @@ st.markdown(
         overflow-y: auto;
         white-space: pre-wrap;
         display: flex;
-        flex-direction: column-reverse; /* This is the trick for autoscroll */
+        flex-direction: column-reverse;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Stream logs
-from ansi2html import Ansi2HTMLConverter
-conv = Ansi2HTMLConverter()
-
-def stream_logs():
-    if os.path.exists(LOG_FILE):
-        with open(LOG_FILE, "r", encoding="utf-8") as f:
-            raw = "".join(f.readlines()[-300:])
-            return conv.convert(raw, full=False)
-    return "⏳ Waiting for logs..."
-
-log_placeholder = st.empty()
-
-
-# Auto-refresh every 2 seconds
+# Refresh display
 st_autorefresh(interval=2000, key="logrefresher")
-
-# Display the logs (autorefresh will update it)
-logs = stream_logs()
-log_placeholder.markdown(f"<div class='log-container'>{logs}</div>", unsafe_allow_html=True)
+logs = read_logs()
+st.markdown(f"<div class='log-container'>{logs}</div>", unsafe_allow_html=True)

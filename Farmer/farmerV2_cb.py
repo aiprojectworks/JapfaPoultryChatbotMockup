@@ -1093,5 +1093,6 @@ def main():
     app.add_handler(conv)
     app.run_polling()
 
-if __name__ == "__main__":
+def run_bot(write_log=print):
+    write_log("🤖 Telegram bot is starting...")
     main()
