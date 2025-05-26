@@ -189,12 +189,6 @@ os.environ["PYTHONIOENCODING"] = "utf-8"
 # In-memory session data
 user_session_data = {}
 
-logging.basicConfig(
-    filename='logs/bot.log',
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s - %(message)s'
-)
-
 def run_sql(query: str):
     try:
         response = supabase_client.rpc("run_sql", {"query": query}).execute()
