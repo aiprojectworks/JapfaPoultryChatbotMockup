@@ -32,11 +32,11 @@ import sys
 
 # Load API key from .env
 load_dotenv()
-os.environ["OPENAI_API_KEY"] = st.secrets("OPENAI_API_KEY")
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 # st.environ["OPENAI_API_KEY"] = st.getenv("OPENAI_API_KEY")
 # os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
 
-EMAIL_PASSKEY = st.secrets("EMAIL_PASSKEY")
+EMAIL_PASSKEY = st.secrets["EMAIL_PASSKEY"]
 
 # telemetry connection fix
 def noop(*args, **kwargs):
