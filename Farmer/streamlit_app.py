@@ -4,6 +4,9 @@ import threading
 import time
 import os
 from streamlit_autorefresh import st_autorefresh
+from farmerV2_cb import *
+from farmer_agents import *
+
 
 LOG_FILE = "logs/bot.log"
 BOT_SCRIPT = "farmerV2_cb.py"
