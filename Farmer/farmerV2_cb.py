@@ -1087,6 +1087,7 @@ def main():
     app.add_handler(conv)
     app.run_polling()
 
-def run_bot(write_log=print):
-    write_log("🤖 Telegram bot is starting...")
+def run_bot(write_log=None):
+    # Set new event loop for thread (required for Streamlit/Threads)
+    asyncio.set_event_loop(asyncio.new_event_loop())
     main()
