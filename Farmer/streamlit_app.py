@@ -3,10 +3,11 @@ import subprocess
 import threading
 import time
 import os
+import sqlite3
+import sqlite3
 from streamlit_autorefresh import st_autorefresh
 from farmerV2_cb import *
 from farmer_agents import *
-import sqlite3
 
 LOG_FILE = "logs/bot.log"
 BOT_SCRIPT = "farmerV2_cb.py"

@@ -1,11 +1,12 @@
 # crew_sql_agent.py
+import sqlite3
+import sqlite3
 from crewai import Agent, Task, Crew
 from crewai.telemetry import Telemetry
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from IPython.display import Markdown
 from typing import Dict, Any
-import sqlite3
 import os
 import re
 import ast

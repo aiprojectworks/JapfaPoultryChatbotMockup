@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import sqlite3
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, MessageHandler,
@@ -20,7 +21,6 @@ from crewai.tools import BaseTool
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from pydantic import PrivateAttr
-import sqlite3
 import streamlit as st
 
 import sys
