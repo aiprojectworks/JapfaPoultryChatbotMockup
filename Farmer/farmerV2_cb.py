@@ -1049,45 +1049,87 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.edit_message_text("⚠️ Failed to delete case due to a system error.")
         return SELECTING_FORM
 
-def main():
-    print("🔁 Initializing tables on Supabase (idempotent)...")
-    # init_db(form_definitions)
+# def main():
+#     print("🔁 Initializing tables on Supabase (idempotent)...")
+#     # init_db(form_definitions)
     
-    # print_all_table_data()
+#     # print_all_table_data()
         
-    app = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
+#     app = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
     
-    conv = ConversationHandler(
-        entry_points=[CommandHandler("start", check_for_incomplete_cases)],
-        states={
-            SELECTING_FORM: [
-                CallbackQueryHandler(select_form, pattern="^form:"),
-                CallbackQueryHandler(save_quit, pattern="^save_quit$"),
-                CallbackQueryHandler(submit_and_email, pattern="^submit_and_email$"),
-                CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$"),
-                CallbackQueryHandler(resume_existing_case, pattern="^resume:"),
-                CallbackQueryHandler(start, pattern="^start_new_case$"),
-                CallbackQueryHandler(delete_case_menu, pattern="^delete_case_menu$"),
-                CallbackQueryHandler(confirm_delete_case, pattern="^confirm_delete_case:(yes|no)$"),
-                CallbackQueryHandler(lambda update, context: update.callback_query.answer("All forms completed. You can now submit or edit answers."), pattern="^noop_disabled_save$")
-            ],
-            SELECTING_QUESTION: [
-                CallbackQueryHandler(select_question, pattern="^question:"),
-                CallbackQueryHandler(select_form, pattern="^form:"),
-                CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$")
-            ],
-            ENTERING_ANSWER: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enter_answer),
-                CallbackQueryHandler(return_to_question_menu, pattern="^return_to_question_menu$"),
-            ]
-        },
-        fallbacks=[CommandHandler("cancel", cancel)]
-    )
+#     conv = ConversationHandler(
+#         entry_points=[CommandHandler("start", check_for_incomplete_cases)],
+#         states={
+#             SELECTING_FORM: [
+#                 CallbackQueryHandler(select_form, pattern="^form:"),
+#                 CallbackQueryHandler(save_quit, pattern="^save_quit$"),
+#                 CallbackQueryHandler(submit_and_email, pattern="^submit_and_email$"),
+#                 CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$"),
+#                 CallbackQueryHandler(resume_existing_case, pattern="^resume:"),
+#                 CallbackQueryHandler(start, pattern="^start_new_case$"),
+#                 CallbackQueryHandler(delete_case_menu, pattern="^delete_case_menu$"),
+#                 CallbackQueryHandler(confirm_delete_case, pattern="^confirm_delete_case:(yes|no)$"),
+#                 CallbackQueryHandler(lambda update, context: update.callback_query.answer("All forms completed. You can now submit or edit answers."), pattern="^noop_disabled_save$")
+#             ],
+#             SELECTING_QUESTION: [
+#                 CallbackQueryHandler(select_question, pattern="^question:"),
+#                 CallbackQueryHandler(select_form, pattern="^form:"),
+#                 CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$")
+#             ],
+#             ENTERING_ANSWER: [
+#                 MessageHandler(filters.TEXT & ~filters.COMMAND, enter_answer),
+#                 CallbackQueryHandler(return_to_question_menu, pattern="^return_to_question_menu$"),
+#             ]
+#         },
+#         fallbacks=[CommandHandler("cancel", cancel)]
+#     )
 
-    app.add_handler(conv)
-    app.run_polling()
+#     app.add_handler(conv)
+#     app.run_polling()
 
 def run_bot(write_log=None):
-    # Set new event loop for thread (required for Streamlit/Threads)
+    import asyncio
+    from telegram.ext import Application
+
     asyncio.set_event_loop(asyncio.new_event_loop())
-    main()
+
+    async def bot_main():
+        # Create the application
+        application = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
+
+        # Register the conversation handler
+        conv = ConversationHandler(
+            entry_points=[CommandHandler("start", check_for_incomplete_cases)],
+            states={
+                SELECTING_FORM: [
+                    CallbackQueryHandler(select_form, pattern="^form:"),
+                    CallbackQueryHandler(save_quit, pattern="^save_quit$"),
+                    CallbackQueryHandler(submit_and_email, pattern="^submit_and_email$"),
+                    CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$"),
+                    CallbackQueryHandler(resume_existing_case, pattern="^resume:"),
+                    CallbackQueryHandler(start, pattern="^start_new_case$"),
+                    CallbackQueryHandler(delete_case_menu, pattern="^delete_case_menu$"),
+                    CallbackQueryHandler(confirm_delete_case, pattern="^confirm_delete_case:(yes|no)$"),
+                    CallbackQueryHandler(lambda update, context: update.callback_query.answer("All forms completed. You can now submit or edit answers."), pattern="^noop_disabled_save$")
+                ],
+                SELECTING_QUESTION: [
+                    CallbackQueryHandler(select_question, pattern="^question:"),
+                    CallbackQueryHandler(select_form, pattern="^form:"),
+                    CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$")
+                ],
+                ENTERING_ANSWER: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, enter_answer),
+                    CallbackQueryHandler(return_to_question_menu, pattern="^return_to_question_menu$"),
+                ]
+            },
+            fallbacks=[CommandHandler("cancel", cancel)]
+        )
+
+        application.add_handler(conv)
+
+        await application.initialize()
+        await application.start()
+        write_log and write_log("🤖 Bot is now running inside Streamlit!")
+        await application.updater.start_polling()
+
+    asyncio.get_event_loop().run_until_complete(bot_main())
