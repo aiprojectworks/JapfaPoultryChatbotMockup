@@ -355,7 +355,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.error(f"Error occurred: {context.error}")
 
 # Launch bot
-def run_telegram_bot():
+def run_sales_telegram_bot():
     async def main():
         app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 
@@ -367,7 +367,7 @@ def run_telegram_bot():
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, case_id_handler))
         app.add_error_handler(error)
 
-        print("🚀 Bot is running...")
+        print("🚀 Sales Bot is running...")
         await app.run_polling(close_loop=False, stop_signals=None)
 
     import nest_asyncio
@@ -375,4 +375,4 @@ def run_telegram_bot():
     asyncio.get_event_loop().run_until_complete(main())
 
 if __name__ == '__main__':
-    run_telegram_bot()
+    run_sales_telegram_bot()

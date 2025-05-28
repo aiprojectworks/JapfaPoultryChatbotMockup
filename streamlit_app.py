@@ -26,7 +26,8 @@ from streamlit_crew import (
     generate_case_summary_for_email,
     send_escalation_email
 )
-from Sales.telegram_app import run_telegram_bot
+from Sales.telegram_app import run_sales_telegram_bot
+from Technical.telegram_bot import run_technical_telegram_bot
 
 
 TELEGRAM_BOT_TOKEN = os.getenv("SALES_TELE_BOT")
@@ -205,13 +206,25 @@ elif main_action == "Escalate Case":
 
 st.sidebar.markdown("---")
 
-if "bot_started" not in st.session_state:
-    st.session_state.bot_started = False
+# Initialize session state for both bots
+if "sales_bot_started" not in st.session_state:
+    st.session_state.sales_bot_started = False
+if "tech_bot_started" not in st.session_state:
+    st.session_state.tech_bot_started = False
 
-if st.sidebar.button("🤖 Activate Telegram Bot"):
-    if not st.session_state.bot_started:
-        st.session_state.bot_started = True
-        threading.Thread(target=run_telegram_bot, daemon=True).start()
-        st.sidebar.success("✅ Telegram Bot started.")
+if st.sidebar.button("🤖 Activate Sales Telegram Bot"):
+    if not st.session_state.sales_bot_started:
+        st.session_state.sales_bot_started = True
+        threading.Thread(target=run_sales_telegram_bot, daemon=True).start()
+        st.sidebar.success("✅ Sales Telegram Bot started.")
     else:
-        st.sidebar.info("ℹ️ Bot is already running.")
+        st.sidebar.info("ℹ️ Sales Bot is already running.")
+
+# Technical Team Telegram Bot Activation
+if st.sidebar.button("▶️ Activate Technical Telegram Bot"):
+    if not st.session_state.tech_bot_started:
+        st.session_state.tech_bot_started = True
+        threading.Thread(target=run_technical_telegram_bot, daemon=True).start()
+        st.sidebar.success("✅ Technical Telegram Bot started.")
+    else:
+        st.sidebar.info("ℹ️ Technical Bot is already running.")

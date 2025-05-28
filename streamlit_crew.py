@@ -155,21 +155,22 @@ Final Output Format (**EXAMPLE**):
 
     for table, query in sql_queries.items():
         try:
-            # If you have a case_id parameter to inject, replace placeholder in query
+            # Always define formatted_query
             if case_id is not None:
                 formatted_query = query.replace("?", f"'%{case_id}%'")
+            else:
+                formatted_query = query
 
             # Call the run_sql RPC function with the formatted query
             response = supabase_client.rpc("run_sql", {"query": formatted_query}).execute()
 
-            # Extract data from response
             if response.data:
-                execution_results[table] = response.data  # Already a list of dicts (json_agg)
+                execution_results[table] = response.data
             else:
                 execution_results[table] = []
 
         except Exception as e:
-            execution_results[table] = f"Error executing query: {e}"
+            execution_results[table] = f"Error executing query: {e} | Query: {formatted_query}"
 
     return execution_results
 
@@ -575,6 +576,9 @@ def generate_summary_of_all_issues():
     # Access 'issues' data from the 'execution_results'
     execution_results = generate_and_execute_sql(action_type='view_all_issues', schema=schema)
     issues_results = execution_results.get("issues", [])
+
+    print("issues_results:", issues_results)
+    print("type of first element:", type(issues_results[0]) if issues_results else "Empty")
 
     # Calculate totals
     total_cases = len(issues_results)

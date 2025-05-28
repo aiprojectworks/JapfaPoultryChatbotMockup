@@ -2,13 +2,14 @@ import logging
 import os
 import re
 import json
+import asyncio
 from langchain_openai import ChatOpenAI
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes
 )
-from technical_crew import run_upload_analysis, upload_file_to_supabase
+from Technical.technical_crew import run_upload_analysis, upload_file_to_supabase
 from Sales.sales_crew import (
     execute_case_closing,
     check_case_exists,
@@ -307,20 +308,26 @@ async def handle_document_upload(update: Update, context: ContextTypes.DEFAULT_T
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.error(f"Error occurred: {context.error}")
 
-def run_telegram_bot():
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+def run_technical_telegram_bot():
+    async def main():
+        app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("cancel", cancel))
-    app.add_handler(CommandHandler("generate_dynamic_report", generate_dynamic_report_command))
-    app.add_handler(CommandHandler("exit", exit_command))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, case_id_handler))
-    app.add_handler(MessageHandler(filters.Document.ALL, handle_document_upload))
-    app.add_error_handler(error)
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("cancel", cancel))
+        app.add_handler(CommandHandler("generate_dynamic_report", generate_dynamic_report_command))
+        app.add_handler(CommandHandler("exit", exit_command))
+        app.add_handler(CallbackQueryHandler(button_handler))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, case_id_handler))
+        app.add_handler(MessageHandler(filters.Document.ALL, handle_document_upload))
+        app.add_error_handler(error)
 
-    print("🚀 Bot is running...")
-    app.run_polling()
+        print("🚀 Technical Bot is running...")
+        await app.run_polling(close_loop=False, stop_signals=None)
+
+    import nest_asyncio
+    import asyncio
+    nest_asyncio.apply()
+    asyncio.get_event_loop().run_until_complete(main())
 
 if __name__ == '__main__':
-    run_telegram_bot()
+    run_technical_telegram_bot()
