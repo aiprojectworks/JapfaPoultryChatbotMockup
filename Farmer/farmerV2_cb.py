@@ -1087,7 +1087,7 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
 #     app.add_handler(conv)
 #     app.run_polling()
 
-def run_bot(write_log=None, stop_flag=lambda: False):
+def run_bot(write_log=None, stop_event=None):
     import asyncio
     import telegram
     from telegram.ext import (
