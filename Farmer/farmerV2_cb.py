@@ -1135,10 +1135,10 @@ def run_bot(write_log=None, stop_flag=lambda: False):
             if write_log:
                 write_log(f"❌ Bot conflict: {e}")
 
-    # Use asyncio.create_task to start bot in Streamlit-compatible environment
     try:
-        asyncio.create_task(bot_main())
-    except RuntimeError as e:
-        # If running inside Streamlit and event loop is already running
-        loop = asyncio.get_event_loop()
-        loop.create_task(bot_main())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot_main())
+    except Exception as e:
+        if write_log:
+            write_log(f"❌ Error while running bot: {e}")
