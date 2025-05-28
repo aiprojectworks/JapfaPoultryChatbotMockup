@@ -69,10 +69,15 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
 if st.sidebar.button("🛑 Stop Telegram Bot"):
     if "bot_thread" in st.session_state and st.session_state.bot_thread.is_alive():
         stop_event.set()
+        st.sidebar.info("🔄 Waiting for bot to shut down...")
+        st.session_state.bot_thread.join(timeout=5)
+        if not st.session_state.bot_thread.is_alive():
+            st.sidebar.success("✅ Bot stopped.")
+        else:
+            st.sidebar.warning("⚠️ Bot may still be shutting down.")
         st.session_state.bot_started = False
-        write_log("🛑 Stop requested. Bot will shut down shortly.")
     else:
-        st.sidebar.info("ℹ️ Bot is not currently running.")
+        st.sidebar.info("ℹ️ No active bot instance.")
 
 if st.sidebar.button("🧹 Clear Logs"):
     st.session_state.logs = []
