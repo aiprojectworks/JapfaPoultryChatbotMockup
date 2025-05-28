@@ -1130,7 +1130,10 @@ def run_bot(write_log=None, stop_flag=lambda: False):
         if write_log:
             write_log("🤖 Initializing bot polling loop...")
         try:
-            await application.run_polling(stop_signals=None)
+            await application.initialize()
+            await application.start()
+            await application.updater.start_polling()
+            write_log and write_log("✅ Bot is now running!")
         except telegram.error.Conflict as e:
             if write_log:
                 write_log(f"❌ Bot conflict: {e}")
