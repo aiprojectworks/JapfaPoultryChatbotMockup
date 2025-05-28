@@ -19,15 +19,14 @@ from streamlit_crew import (
     generate_report_for_forms,
     generate_summary_of_all_issues,
     generate_report_from_prompt,
-    generate_and_execute_sql,
     generate_and_execute_sql_prompt,
     execute_case_closing,
     execute_case_escalation,
     generate_case_summary_for_email,
     send_escalation_email
 )
-from Sales.telegram_app import run_sales_telegram_bot
-from Technical.telegram_bot import run_technical_telegram_bot
+from Sales.sales_telegram_bot import run_sales_telegram_bot
+from Technical.tech_telegram_bot import run_technical_telegram_bot
 
 
 TELEGRAM_BOT_TOKEN = os.getenv("SALES_TELE_BOT")
