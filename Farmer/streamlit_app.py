@@ -31,12 +31,21 @@ def read_logs():
     return "\n".join(st.session_state.get("logs", []))
 
 # Function to start bot (using imported run_bot, not subprocess)
-def start_bot():
-    write_log("🔄 Bot is starting...")
-    try:
-        run_bot(write_log=write_log)  # Inject log handler into your bot logic
-    except Exception as e:
-        write_log(f"❌ Error: {e}")
+def start_bot_thread():
+    def run():
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            run_bot(write_log=write_log, stop_event=stop_event)
+        except Exception as e:
+            write_log(f"❌ Thread error: {e}")
+        finally:
+            loop.close()
+
+    bot_thread = threading.Thread(target=run, daemon=True)
+    bot_thread.start()
+    return bot_thread
 
 # Init state
 if "bot_started" not in st.session_state:
@@ -53,12 +62,7 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
     if not st.session_state.get("bot_thread") or not st.session_state.bot_thread.is_alive():
         stop_event.clear()
         st.session_state.bot_started = True
-        bot_thread = threading.Thread(
-            target=lambda: run_bot(write_log=write_log, stop_event=stop_event),
-            daemon=True
-        )
-        bot_thread.start()
-        st.session_state.bot_thread = bot_thread
+        st.session_state.bot_thread = start_bot_thread()
         st.sidebar.success("✅ Bot started.")
     else:
         st.sidebar.info("ℹ️ Bot already running.")
