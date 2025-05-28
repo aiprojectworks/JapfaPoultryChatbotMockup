@@ -1127,30 +1127,27 @@ def run_bot(write_log=None, stop_flag=lambda: False):
 
         application.add_handler(conv)
 
+        write_log and write_log("🤖 Starting polling...")
+
+        polling_task = asyncio.create_task(application.run_polling(stop_signals=None))
+
         try:
-            write_log and write_log("🤖 Initializing bot...")
-            await application.initialize()
-            await application.start()
-            polling_task = asyncio.create_task(application.updater.start_polling())
-
-            write_log and write_log("✅ Bot is now running!")
-
-            # Wait until stop_flag is set
-            while not stop_flag():
+            # Wait until stop_event is triggered
+            while not stop_event.is_set():
                 await asyncio.sleep(1)
 
-            write_log and write_log("🛑 Stop signal received. Shutting down...")
+            write_log and write_log("🛑 Stop signal received. Shutting down polling...")
 
-            # Stop polling
-            await application.updater.stop()
-            await polling_task  # <- WAIT for polling to end
-            await application.stop()
-            await application.shutdown()
+            polling_task.cancel()
+            try:
+                await polling_task
+            except asyncio.CancelledError:
+                pass
 
             write_log and write_log("✅ Bot shutdown complete.")
 
         except telegram.error.Conflict as e:
-            write_log and write_log(f"❌ Conflict: another instance is polling: {e}")
+            write_log and write_log(f"❌ Conflict: {e}")
         except Exception as e:
             write_log and write_log(f"❌ Unexpected error: {e}")
 

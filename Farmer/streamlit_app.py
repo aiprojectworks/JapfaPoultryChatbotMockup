@@ -54,10 +54,7 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
         stop_event.clear()
         st.session_state.bot_started = True
         bot_thread = threading.Thread(
-            target=lambda: run_bot(
-                write_log=write_log,
-                stop_flag=stop_event.is_set
-            ),
+            target=lambda: run_bot(write_log=write_log, stop_event=stop_event),
             daemon=True
         )
         bot_thread.start()
