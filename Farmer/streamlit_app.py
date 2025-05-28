@@ -50,27 +50,29 @@ if "log_clear_time" not in st.session_state:
 st.sidebar.title("🛠️ Bot Control")
 
 if st.sidebar.button("▶️ Start Telegram Bot"):
-    if not st.session_state.bot_started:
+    if not st.session_state.get("bot_thread") or not st.session_state.bot_thread.is_alive():
+        stop_event.clear()
         st.session_state.bot_started = True
-        threading.Thread(
+        bot_thread = threading.Thread(
             target=lambda: run_bot(
                 write_log=write_log,
                 stop_flag=stop_event.is_set
             ),
             daemon=True
-        ).start()
+        )
+        bot_thread.start()
+        st.session_state.bot_thread = bot_thread
         st.sidebar.success("✅ Bot started.")
     else:
         st.sidebar.info("ℹ️ Bot already running.")
         
 if st.sidebar.button("🛑 Stop Telegram Bot"):
-    if st.session_state.bot_started:
+    if "bot_thread" in st.session_state and st.session_state.bot_thread.is_alive():
         stop_event.set()
         st.session_state.bot_started = False
         write_log("🛑 Stop requested. Bot will shut down shortly.")
     else:
         st.sidebar.info("ℹ️ Bot is not currently running.")
-    st.session_state.bot_started = False
 
 if st.sidebar.button("🧹 Clear Logs"):
     st.session_state.logs = []
