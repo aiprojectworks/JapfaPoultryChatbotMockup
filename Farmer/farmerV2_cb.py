@@ -1096,6 +1096,15 @@ def run_bot(write_log=None):
 
     async def bot_main():
         application = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
+        application.add_handler(...)
+    
+        while not stop_flag():
+            try:
+                application.run_polling(stop_signals=None)
+            except telegram.error.Conflict as e:
+                if write_log:
+                    write_log(f"❌ Bot conflict: {e}")
+                break
 
         # Your ConversationHandler setup
         conv = ConversationHandler(
