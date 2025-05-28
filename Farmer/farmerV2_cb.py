@@ -1129,8 +1129,6 @@ def run_bot(write_log=None, stop_event=None):
 
         write_log and write_log("🤖 Starting polling...")
 
-        polling_task = asyncio.create_task(application.run_polling(stop_signals=None))
-
         try:
             # Run polling (this blocks until shutdown)
             await application.run_polling(stop_signals=None)
