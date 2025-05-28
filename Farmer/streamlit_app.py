@@ -18,14 +18,6 @@ from streamlit_autorefresh import st_autorefresh
 from farmerV2_cb import run_bot
 from farmer_agents import *
 
-stop_event = threading.Event()
-
-if "stop_event" not in st.session_state:
-    st.session_state.stop_event = threading.Event()
-if "bot_started" not in st.session_state:
-    st.session_state.bot_started = False
-if "log_clear_time" not in st.session_state:
-    st.session_state.log_clear_time = None
 
 # Session-based logging instead of file-based
 def write_log(message):
@@ -38,46 +30,30 @@ def read_logs():
     return "\n".join(st.session_state.get("logs", []))
 
 # Function to start bot (using imported run_bot, not subprocess)
-def start_bot_thread():
-    def run():
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            run_bot(write_log=write_log, stop_event=st.session_state.stop_event)
-        except Exception as e:
-            write_log(f"❌ Thread error: {e}")
-        finally:
-            loop.close()
+def start_bot():
+    write_log("🔄 Bot is starting...")
+    try:
+        run_bot(write_log=write_log)  # Inject log handler into your bot logic
+    except Exception as e:
+        write_log(f"❌ Error: {e}")
 
-    bot_thread = threading.Thread(target=run, daemon=True)
-    bot_thread.start()
-    return bot_thread
+# Init state
+if "bot_started" not in st.session_state:
+    st.session_state.bot_started = False
+
+if "log_clear_time" not in st.session_state:
+    st.session_state.log_clear_time = None
 
 # Sidebar
 st.sidebar.title("🛠️ Bot Control")
 
 if st.sidebar.button("▶️ Start Telegram Bot"):
-    if not st.session_state.get("bot_thread") or not st.session_state.bot_thread.is_alive():
-        st.session_state.stop_event.clear()  # ← use session-scoped stop_event
+    if not st.session_state.bot_started:
         st.session_state.bot_started = True
-        st.session_state.bot_thread = start_bot_thread()
+        threading.Thread(target=lambda: run_bot(write_log=write_log), daemon=True).start()
         st.sidebar.success("✅ Bot started.")
     else:
         st.sidebar.info("ℹ️ Bot already running.")
-        
-if st.sidebar.button("🛑 Stop Telegram Bot"):
-    if "bot_thread" in st.session_state and st.session_state.bot_thread.is_alive():
-        st.session_state.stop_event.set()
-        st.sidebar.info("🔄 Waiting for bot to shut down...")
-        st.session_state.bot_thread.join(timeout=10)
-        if not st.session_state.bot_thread.is_alive():
-            st.sidebar.success("✅ Bot stopped.")
-        else:
-            st.sidebar.warning("⚠️ Bot may still be shutting down.")
-        st.session_state.bot_started = False
-    else:
-        st.sidebar.info("ℹ️ No active bot instance.")
 
 if st.sidebar.button("🧹 Clear Logs"):
     st.session_state.logs = []

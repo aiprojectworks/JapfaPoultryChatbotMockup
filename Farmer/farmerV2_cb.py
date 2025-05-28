@@ -1087,17 +1087,17 @@ async def confirm_delete_case(update: Update, context: ContextTypes.DEFAULT_TYPE
 #     app.add_handler(conv)
 #     app.run_polling()
 
-def run_bot(write_log=None, stop_event=None):
+def run_bot(write_log=None):
     import asyncio
-    import telegram
-    from telegram.ext import (
-        Application, CommandHandler, CallbackQueryHandler,
-        MessageHandler, ConversationHandler, filters
-    )
+    from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ConversationHandler, filters
+
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    loop = asyncio.get_event_loop()
 
     async def bot_main():
         application = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
 
+        # Your ConversationHandler setup
         conv = ConversationHandler(
             entry_points=[CommandHandler("start", check_for_incomplete_cases)],
             states={
@@ -1127,32 +1127,27 @@ def run_bot(write_log=None, stop_event=None):
 
         application.add_handler(conv)
 
-        write_log and write_log("🤖 Starting polling...")
-
+        # Run polling without signal handling (safe for background thread)
+        write_log and write_log("🤖 Initializing bot polling loop...")
         await application.initialize()
         await application.start()
-
-        # Start polling as a task
-        polling_task = asyncio.create_task(application.updater.start_polling())
-
+        await application.updater.start_polling()  # Safe even without idle()
         write_log and write_log("✅ Bot is now running!")
 
-        # 🔄 Wait until stop_event is set by Streamlit
-        while not stop_event.is_set():
+        # Keep running until Streamlit session ends
+        while True:
             await asyncio.sleep(1)
 
-        write_log and write_log("🛑 Stop signal received. Shutting down bot...")
-
-        await application.updater.stop()
-        await polling_task  # Wait for polling to end
-        await application.stop()
-        await application.shutdown()
-
-        write_log and write_log("✅ Bot shutdown complete.")
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(bot_main())
+    except RuntimeError as e:
+        print("RuntimeError in bot:", e)
     finally:
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            task.cancel()
+        try:
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+        except Exception as e:
+            print("Error cleaning up pending tasks:", e)
         loop.close()
