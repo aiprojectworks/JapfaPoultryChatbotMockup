@@ -480,13 +480,13 @@ def generate_summary_of_all_issues():
 # Task for Status Update
 def check_case_exists(case_id: str) -> bool:
     try:
-        # Use LIKE to match first 8 characters of case_id
         response = supabase_client.table("issues") \
-            .select("id", count="exact") \
+            .select("id") \
             .like("case_id", f"{case_id}%") \
             .execute()
         
-        return response.count > 0
+        # response.data is a list of dicts representing rows
+        return len(response.data) > 0
     
     except Exception as e:
         print(f"Error checking case ID in DB: {e}")
