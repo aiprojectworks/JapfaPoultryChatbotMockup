@@ -299,6 +299,7 @@ async def case_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         if not check_case_exists(case_id):
+            print(f"❌ Case ID {case_id} does not exist.")
             await update.message.reply_text(f"❌ Case ID {case_id} does not exist.")
             return
         
