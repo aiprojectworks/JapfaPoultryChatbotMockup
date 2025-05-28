@@ -368,8 +368,9 @@ def run_telegram_bot():
         app.add_error_handler(error)
 
         print("🚀 Bot is running...")
-        await app.run_polling()
+        await app.run_polling(close_loop=False, stop_signals=None)
 
+    import nest_asyncio
     nest_asyncio.apply()
     asyncio.get_event_loop().run_until_complete(main())
 
