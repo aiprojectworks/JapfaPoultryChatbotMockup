@@ -1,8 +1,19 @@
+import sys
+
+try:
+    import pysqlite3
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # Fall back to built-in sqlite3 on Windows or if pysqlite3 is not installed
+    import sqlite3
+else:
+    # Now sqlite3 refers to pysqlite3
+    import sqlite3
+
 import streamlit as st
 import threading
 import re
 import os
-import subprocess
 from streamlit_crew import (
     generate_individual_case_summary,
     generate_report_for_forms,
