@@ -37,7 +37,6 @@ Tables:
 - medical_diagnostic_records(id, case_id, vaccination_history, lab_data, pathology_findings_necropsy, current_treatment, management_questions, timestamp)
 - issues(id, title, description, farm_name, status, close_reason, assigned_team, case_id, created_at, updated_at)
 - farmer_problem(id, case_id, problem_description, timestamp)
-- notifications(id, recipient_team, message, sent_at)
 - issue_attachments(id, case_id, file_name, file_path, uploaded_at)
 """
 
