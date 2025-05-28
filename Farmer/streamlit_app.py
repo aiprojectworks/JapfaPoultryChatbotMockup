@@ -20,6 +20,13 @@ from farmer_agents import *
 
 stop_event = threading.Event()
 
+if "stop_event" not in st.session_state:
+    st.session_state.stop_event = threading.Event()
+if "bot_started" not in st.session_state:
+    st.session_state.bot_started = False
+if "log_clear_time" not in st.session_state:
+    st.session_state.log_clear_time = None
+
 # Session-based logging instead of file-based
 def write_log(message):
     if "logs" not in st.session_state:
@@ -37,7 +44,7 @@ def start_bot_thread():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            run_bot(write_log=write_log, stop_event=stop_event)
+            run_bot(write_log=write_log, stop_event=st.session_state.stop_event)
         except Exception as e:
             write_log(f"❌ Thread error: {e}")
         finally:
@@ -47,20 +54,12 @@ def start_bot_thread():
     bot_thread.start()
     return bot_thread
 
-# Init state
-if "bot_started" not in st.session_state:
-    st.session_state.bot_started = False
-if "stop_flag" not in st.session_state:
-    st.session_state.stop_flag = False
-if "log_clear_time" not in st.session_state:
-    st.session_state.log_clear_time = None
-
 # Sidebar
 st.sidebar.title("🛠️ Bot Control")
 
 if st.sidebar.button("▶️ Start Telegram Bot"):
     if not st.session_state.get("bot_thread") or not st.session_state.bot_thread.is_alive():
-        stop_event.clear()
+        st.session_state.stop_event.clear()  # ← use session-scoped stop_event
         st.session_state.bot_started = True
         st.session_state.bot_thread = start_bot_thread()
         st.sidebar.success("✅ Bot started.")
@@ -69,9 +68,9 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
         
 if st.sidebar.button("🛑 Stop Telegram Bot"):
     if "bot_thread" in st.session_state and st.session_state.bot_thread.is_alive():
-        stop_event.set()
+        st.session_state.stop_event.set()
         st.sidebar.info("🔄 Waiting for bot to shut down...")
-        st.session_state.bot_thread.join(timeout=5)
+        st.session_state.bot_thread.join(timeout=10)
         if not st.session_state.bot_thread.is_alive():
             st.sidebar.success("✅ Bot stopped.")
         else:
