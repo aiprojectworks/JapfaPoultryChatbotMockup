@@ -40,7 +40,8 @@ def start_bot():
 # Init state
 if "bot_started" not in st.session_state:
     st.session_state.bot_started = False
-
+if "stop_flag" not in st.session_state:
+    st.session_state.stop_flag = False
 if "log_clear_time" not in st.session_state:
     st.session_state.log_clear_time = None
 
@@ -62,13 +63,12 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
         st.sidebar.info("ℹ️ Bot already running.")
         
 if st.sidebar.button("🛑 Stop Telegram Bot"):
-    st.session_state.stop_flag = True
-    st.session_state.bot_started = False
-    write_log("🛑 Stop requested.")
-    if st.session_state.get("bot_thread") and st.session_state["bot_thread"].is_alive():
-        # Streamlit doesn't allow thread termination directly
-        write_log("⚠️ Cannot force stop bot in current design (Python limitation).")
-        st.sidebar.warning("Manual restart may be needed.")
+    if st.session_state.bot_started:
+        st.session_state.stop_flag = True
+        st.session_state.bot_started = False
+        write_log("🛑 Stop requested. Bot will shut down shortly.")
+    else:
+        st.sidebar.info("ℹ️ Bot is not currently running.")
     st.session_state.bot_started = False
 
 if st.sidebar.button("🧹 Clear Logs"):
