@@ -18,7 +18,7 @@ supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 os.environ["CREWAI_TELEMETRY_DISABLED"] = "1"
 
-class SQLiteTool(BaseTool):
+class SQLTool(BaseTool):
     name: str = "SQLiteTool"
     description: str = "Run SQL queries against the poultry database."
     _client: Client = PrivateAttr()
@@ -48,7 +48,7 @@ Tables:
 - issue_attachments(id, case_id, file_name, file_path, uploaded_at)
 """
 
-sqlite_tool = SQLiteTool(SUPABASE_URL, SUPABASE_KEY)
+sql_tool = SQLTool(SUPABASE_URL, SUPABASE_KEY)
 
 # AGENTS
 sql_agent = Agent(
@@ -66,7 +66,7 @@ status_update_agent = Agent(
     backstory="An expert in updating issue statuses and generating appropriate SQL queries to reflect changes.",
     verbose=True,
     allow_delegation=False,
-    tools=[sqlite_tool],
+    tools=[sql_tool],
     llm=ChatOpenAI(model_name="gpt-4o", temperature=0.3)
 )
 
@@ -426,7 +426,7 @@ def generate_summary_of_all_issues():
         else:
             farm_summary[farm_name]["closed"] += 1
 
-        # Example: Check if 'Needs Tech Help' based on certain criteria (could be modified)
+        # Check for 'tech' in 'Needs Tech Help' column 
         if 'tech' in (issue.get('assigned_team') or '').lower():
             farm_summary[farm_name]["needs_tech_help"] += 1
 
@@ -500,7 +500,7 @@ def execute_case_closing(case_id: str, reason: str) -> str:
         f"The case_id provided is only the first 8 characters of the case_id, so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
         Close case {case_id} with the close_reason as: {reason} in the issues table.",
         agent=status_update_agent,
-        tools=[sqlite_tool],
+        tools=[sql_tool],
         expected_output="Confirmation that the case has been closed. Give a simple explanation, don't mention '8 character case_id'."
     )
 
@@ -518,7 +518,7 @@ def execute_case_escalation(case_id: str) -> str:
         f"The case_id provided is a partial UUID (first 8 characters only), so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
         Update the 'assigned_team' field to 'Technical' for case ID {case_id} in the 'issues' table.",
         agent=status_update_agent,
-        tools=[sqlite_tool],
+        tools=[sql_tool],
         expected_output="Confirmation that the case has been escalated to the Technical team."
     )
 
@@ -529,6 +529,7 @@ def execute_case_escalation(case_id: str) -> str:
     )
     return crew.kickoff()
 
+# TESTING CODE
 # case_id = int(input("Enter the case ID: "))
 # prompt = input("Enter the prompt: ")
 

@@ -1,16 +1,20 @@
 import os
 import json
 import re
+import smtplib
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from crewai import Agent, Task, Crew
 from crewai.tools import BaseTool
 from pydantic import PrivateAttr
 from supabase import create_client, Client
+from email.message import EmailMessage
 
 # Load .env variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+llm = ChatOpenAI(model_name="gpt-4o")
+EMAIL_PASSKEY = os.getenv("EMAIL_PASSKEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -43,7 +47,6 @@ Tables:
 - medical_diagnostic_records(id, case_id, vaccination_history, lab_data, pathology_findings_necropsy, current_treatment, management_questions, timestamp)
 - issues(id, title, description, farm_name, status, close_reason, assigned_team, case_id, created_at, updated_at)
 - farmer_problem(id, case_id, problem_description, timestamp)
-- notifications(id, recipient_team, message, sent_at)
 - issue_attachments(id, case_id, file_name, file_path, uploaded_at)
 """
 
@@ -155,8 +158,6 @@ Final Output Format (**EXAMPLE**):
             # If you have a case_id parameter to inject, replace placeholder in query
             if case_id is not None:
                 formatted_query = query.replace("?", f"'%{case_id}%'")
-            else:
-                formatted_query = query
 
             # Call the run_sql RPC function with the formatted query
             response = supabase_client.rpc("run_sql", {"query": formatted_query}).execute()
@@ -172,7 +173,110 @@ Final Output Format (**EXAMPLE**):
 
     return execution_results
 
-def generate_report_from_prompt(execution_results, case_id):
+def generate_and_execute_sql_prompt(schema: str, filters:dict, user_input:str = None) -> dict:
+    
+    case_id = filters.get("case_id")
+    filter_descriptions = []
+    for key, value in filters.items():
+        if value == "__NULL__":
+            filter_descriptions.append(f"{key} is NULL")
+        else:
+            filter_descriptions.append(f"{key} = '{value}'")
+    filter_text = " and ".join(filter_descriptions)
+
+    filter_text = json.dumps(filters, indent=2)  # Dict passed as JSON to LLM
+    
+    sql_prompt = f"""
+You are an SQL generation agent. Your job is to generate **parameterized SQL** statements to fulfill the following task:
+
+--- USER INPUT ---
+"{user_input}"
+------------------
+
+--- EXTRACTED FILTERS ---
+{filter_text}
+-------------------------
+
+Instructions:
+- Use the known form schemas listed below.
+- Check all tables listed.
+- No need to include case id everytime, only include it if it is mentioned in the filters.
+- The case_id provided is a partial UUID (first 8 characters only), so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'.
+- If the value is "__NULL__", generate SQL like: column_name IS NULL 
+- For ALL filters (like symptoms, farm_name, location, etc), use: column_name LIKE '%value%' to allow partial matches.
+- For numeric or exact-match fields, use: column_name = ?
+- Replace placeholders with provided values.
+- Do NOT return explanations, only the SQL queries.
+- Return the output in **JSON format** with keys as table names and values as SQL strings.
+- Use lowercase snake_case field names exactly as defined in the schema (not display labels).
+
+--- FORM SCHEMA ---
+{schema}
+-------------------
+
+Final Output Format (**EXAMPLE**):
+
+```json
+{{
+  "biosecurity_form": "SELECT * FROM biosecurity_form WHERE case_id = ? AND farm_location IS NOT NULL AND farm_location != '' ...",
+  "mortality_form": "...",
+  "health_status_form": "...",
+  "farmer_problem": "..."
+}}
+"""
+    sql_task = Task(
+    description=sql_prompt,
+    agent=sql_agent,
+    expected_output="JSON with parameterized SQL"
+    )
+    
+    crew = Crew(agents=[sql_agent], tasks=[sql_task], verbose=True)
+    result = crew.kickoff()
+    print("SQL Generation Result:\n", result)
+
+    # Extract JSON from output
+    match = re.search(r'\{[\s\S]*\}', str(result))
+    if not match:
+        print("No JSON found in output.")
+        return {}
+
+    try:
+        sql_queries = json.loads(match.group(0))
+    except json.JSONDecodeError as e:
+        print("Failed to parse SQL JSON:", e)
+        return {}
+
+    # Execute queries
+    execution_results = {}
+
+    for table, query in sql_queries.items():
+        try:
+            # If you have a case_id parameter to inject, replace placeholder in query
+            formatted_query = query
+            for value in filters.values():
+                if value == "__NULL__":
+                    continue  # Handled in SQL directly
+                formatted_query = formatted_query.replace("?", f"'{value}'", 1)
+                print(f"FORMATTED QUERY for {table}: {formatted_query}")
+
+            # Call the run_sql RPC function with the formatted query
+            response = supabase_client.rpc("run_sql", {"query": formatted_query}).execute()
+
+            # Extract data from response
+            if response.data:
+                execution_results[table] = response.data  # Already a list of dicts (json_agg)
+            else:
+                execution_results[table] = []
+
+        except Exception as e:
+            execution_results[table] = f"Error executing query: {e}"
+
+    return execution_results
+
+def generate_report_from_prompt(execution_results, filters):
+    case_id = filters.get("case_id", "N/A")
+    farm_name = filters.get("farm_name", "N/A")
+
     report_prompt = f"""
     Your task is to write a professional, human-readable report summarizing the key findings from the data.
 
@@ -184,7 +288,6 @@ def generate_report_from_prompt(execution_results, case_id):
     - Do not include raw SQL or technical field names.
 
     Raw Data:
-    Case ID: {case_id}
     {json.dumps(execution_results, indent=2)}
     """
 
@@ -248,6 +351,151 @@ def generate_individual_case_summary(case_id):
     )
 
     return case_summary_crew.kickoff()
+
+def generate_case_summary_for_email(case_id):
+    case_summary_task_description = """
+    You have been given the following results from SQL queries on case_id {case_id}. Your task is to generate a high-level summary of the following data. 
+    Limit your response to 2 sentences for each result.
+    Do not wrap the output in any code block or quotes.
+
+    --- SQL RESULTS ---
+    Farm Name:
+    {farm_name}
+
+    Flock Farm Information Form Results:
+    {flock_farm_information_results}
+
+    Symptoms Performance Data Form Results:
+    {symptoms_performance_data_results}
+
+    Medical Diagnostic Records Form Results:
+    {medical_diagnostic_records_results}
+
+    Farmer's Problem:
+    {farmer_problem_results}
+
+    Format the output as follows:
+    "Farm Name: <farm_name>\n"
+    "Flock Farm Information: <short summary>\n"
+    "Symptoms Performance: <short summary>\n"
+    "Medical Diagnostic Records: <short summary>\n"
+    "Farmer's Problem: <short summary>\n"
+    """
+
+    execution_results_for_case_summary = generate_and_execute_sql(action_type='case_summary', case_id=case_id, schema=schema)
+
+    # Generate the formatted report using the results from the SQL execution
+    case_summary_task_description_filled = case_summary_task_description.format(
+        case_id=case_id,
+        farm_name=execution_results_for_case_summary.get('issues', 'No data available.'),
+        flock_farm_information_results=execution_results_for_case_summary.get('flock_farm_information', 'No data available.'),
+        symptoms_performance_data_results=execution_results_for_case_summary.get('symptoms_performance_data', 'No data available.'),
+        medical_diagnostic_records_results=execution_results_for_case_summary.get('medical_diagnostic_records', 'No data available.'),
+        farmer_problem_results=execution_results_for_case_summary.get('farmer_problem', 'No data available.')
+    )
+
+    case_summary_task = Task(
+            description=case_summary_task_description_filled,
+            agent=report_generation_agent,
+            expected_output=f"Concise natural language summaries of the forms for case_id {case_id}.",
+            output_file="case_summary_for_email.txt"
+        )
+
+    case_summary_crew = Crew(
+        agents=[report_generation_agent],
+        tasks=[case_summary_task],
+        verbose=True
+    )
+
+    return case_summary_crew.kickoff()
+
+def send_escalation_email(case_id: str, reason: str, case_info: str):
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = f"🚨 Escalation Notice: Case #{case_id}"
+        msg["From"] = "japfanotifier@gmail.com"
+        msg["To"] = "2006limjy@gmail.com"
+
+        msg.set_content(f"""
+A case has been escalated by a sales user.
+
+Case ID: {case_id}
+Reason for Escalation:
+{reason}
+
+Case Details:
+{case_info}
+
+Please review and follow up promptly, thank you.
+""")
+        html_content = f"""
+        <html>
+            <head>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        background-color: #f4f4f9;
+                        padding: 20px;
+                        color: #333;
+                    }}
+                    .container {{
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    }}
+                    h1 {{
+                        color: #d9534f;
+                    }}
+                    .section-title {{
+                        margin-top: 20px;
+                        font-size: 18px;
+                        color: #e67e22;
+                    }}
+                    .info-box {{
+                        background-color: #f9f9f9;
+                        border-left: 5px solid #e67e22;
+                        padding: 10px;
+                        margin-top: 10px;
+                        white-space: pre-wrap;
+                    }}
+                    .footer {{
+                        margin-top: 30px;
+                        font-size: 12px;
+                        color: #aaa;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1 style="margin-bottom: 10px; text-align:center">Technical Escalation Notice</h1>
+                    <p><strong>Case ID:</strong>{case_id}</p>
+                    <div class="section-title">Reason for Escalation:</div>
+                    <div class="info-box">{reason}</div>
+
+                    <div class="section-title">Case Summary:</div>
+                    <div class="info-box">{case_info}</div>
+
+                    <p>Please review and follow up promptly. Thank you.</p>
+                    <div class="footer">
+                    This email was automatically generated by the Japfa Case Management System.
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+
+        msg.add_alternative(html_content, subtype="html")
+
+        # Send email
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login("japfanotifier@gmail.com", EMAIL_PASSKEY)
+            smtp.send_message(msg)
+
+        return True
+    except Exception as e:
+        print(f"❌ Error sending email: {e}")
+        return False
 
 def generate_report_for_forms(case_id):
     report_task_description = """
@@ -415,10 +663,12 @@ def check_case_exists(case_id: str) -> bool:
 def execute_case_closing(case_id: str, reason: str) -> str:
     """Close a case using CrewAI's task execution flow."""
     close_task = Task(
-        description=f"Close case {case_id} with the close_reason as: {reason} in the issues table.",
+        description=
+        f"The case_id provided is only the first 8 characters of the case_id, so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
+        Close case {case_id} with the close_reason as: {reason} in the issues table.",
         agent=status_update_agent,
         tools=[sqlite_tool],
-        expected_output="Case closed confirmation"
+        expected_output="Confirmation that the case has been closed. Give a simple explanation, don't mention '8 character case_id'."
     )
 
     crew = Crew(
@@ -431,7 +681,9 @@ def execute_case_closing(case_id: str, reason: str) -> str:
 def execute_case_escalation(case_id: str) -> str:
     """Escalate a case using CrewAI's task execution flow."""
     escalate_task = Task(
-        description=f"Update the 'assigned_team' field to 'Technical' for case ID {case_id} in the 'issues' table.",
+        description=
+        f"The case_id provided is a partial UUID (first 8 characters only), so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
+        Update the 'assigned_team' field to 'Technical' for case ID {case_id} in the 'issues' table.",
         agent=status_update_agent,
         tools=[sqlite_tool],
         expected_output="Confirmation that the case has been escalated to the Technical team."

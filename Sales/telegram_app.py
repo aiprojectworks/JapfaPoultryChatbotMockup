@@ -2,6 +2,8 @@ import logging
 import os
 import re
 import smtplib
+import asyncio
+import nest_asyncio
 from email.message import EmailMessage
 from langchain_openai import ChatOpenAI
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -10,7 +12,7 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes
 )
-from sales_crew import (
+from Sales.sales_crew import (
     execute_case_closing,
     check_case_exists,
     generate_individual_case_summary,
@@ -39,7 +41,7 @@ Tables:
 - issue_attachments(id, case_id, file_name, file_path, uploaded_at)
 """
 
-TELEGRAM_BOT_TOKEN = "7020100788:AAHwAgmmocZHULAdthkhzI7vMxbks3G8NVs"
+TELEGRAM_BOT_TOKEN = os.getenv("SALES_TELE_BOT")
 EMAIL_PASSKEY = os.getenv("EMAIL_PASSKEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -230,20 +232,19 @@ async def case_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user_input:
         await update.message.reply_text("❗ Input cannot be empty. Please try again.")
         return
-    
-    if not re.fullmatch(r"[0-9a-fA-F]{8}", user_input):
-        await update.message.reply_text("❗ Invalid Case ID format. Please enter the first 8 characters of the case ID.")
-        return
-    
-    if not check_case_exists(user_input):
-        await update.message.reply_text(f"❌ Case ID {user_input} does not exist, please try again.")
-        return
 
     state = user_state[user_id]
 
     # Handle action based on user state
     if state["action"] == "closing_case":
         if state["step"] == "awaiting_case_id":
+            if not re.fullmatch(r"[0-9a-fA-F]{8}", user_input):
+                await update.message.reply_text("❗ Invalid Case ID format. Please enter the first 8 characters of the case ID.")
+                return
+
+            if not check_case_exists(user_input):
+                await update.message.reply_text(f"❌ Case ID {user_input} does not exist, please try again.")
+                return
 
             state["case_id"] = user_input
             state["step"] = "awaiting_reason"
@@ -262,6 +263,13 @@ async def case_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif state["action"] == "escalating_case":
         if state["step"] == "awaiting_case_id":
+            if not re.fullmatch(r"[0-9a-fA-F]{8}", user_input):
+                await update.message.reply_text("❗ Invalid Case ID format. Please enter the first 8 characters of the case ID.")
+                return
+
+            if not check_case_exists(user_input):
+                await update.message.reply_text(f"❌ Case ID {user_input} does not exist.")
+                return
 
             state["case_id"] = user_input
             state["step"] = "awaiting_reason"
@@ -287,6 +295,14 @@ async def case_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Handle case summary generation
         case_id = user_input.strip()
 
+        if not re.fullmatch(r"[0-9a-fA-F]{8}", case_id):
+            await update.message.reply_text("❗ Invalid Case ID format. Please enter the first 8 characters of the case ID.")
+            return
+
+        if not check_case_exists(case_id):
+            await update.message.reply_text(f"❌ Case ID {case_id} does not exist.")
+            return
+        
         await update.message.reply_text("⏳ Generating case summary...")
         result = generate_individual_case_summary(case_id)
         await update.message.reply_text(f"<pre>{result}</pre>", parse_mode="HTML")
@@ -295,6 +311,14 @@ async def case_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif state["action"] == "generate_report":
         # Handle full report generation
         case_id = user_input.strip()
+
+        if not re.fullmatch(r"[0-9a-fA-F]{8}", case_id):
+            await update.message.reply_text("❗ Invalid Case ID format. Please enter the first 8 characters of the case ID.")
+            return
+
+        if not check_case_exists(case_id):
+            await update.message.reply_text(f"❌ Case ID {case_id} does not exist.")
+            return
         
         await update.message.reply_text("⏳ Generating full report...")
         result = generate_report_for_forms(case_id)
@@ -333,18 +357,22 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Launch bot
 def run_telegram_bot():
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+    async def main():
+        app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("cancel", cancel))
-    app.add_handler(CommandHandler("generate_dynamic_report", generate_dynamic_report_command))
-    app.add_handler(CommandHandler("exit", exit_command))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, case_id_handler))
-    app.add_error_handler(error)
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("cancel", cancel))
+        app.add_handler(CommandHandler("generate_dynamic_report", generate_dynamic_report_command))
+        app.add_handler(CommandHandler("exit", exit_command))
+        app.add_handler(CallbackQueryHandler(button_handler))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, case_id_handler))
+        app.add_error_handler(error)
 
-    print("🚀 Bot is running...")
-    app.run_polling()
+        print("🚀 Bot is running...")
+        await app.run_polling()
+
+    nest_asyncio.apply()
+    asyncio.get_event_loop().run_until_complete(main())
 
 if __name__ == '__main__':
     run_telegram_bot()
