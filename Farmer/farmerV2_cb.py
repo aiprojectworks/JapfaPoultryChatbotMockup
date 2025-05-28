@@ -160,7 +160,7 @@ intent_dict = {
     "get_latest_timestamp_for_case_id_per_form": "For each form table, select the latest timestamp for 2 parameters which are a given case_id and a given user_id. Order by timestamp descending and limit to 1 row per table.",
     "delete_case_by_user_and_case_id": (
         "For each form table, generate a SQL statement to delete all entries belonging to a given user and case ID. "
-        "Use parameter placeholders for user and case_id. "
+        "Use parameter placeholders for case_id and then user_id. "
         "Return the statements as a JSON object with table names as keys and the SQL as values."
     ),
 }
@@ -1115,11 +1115,15 @@ def run_bot(write_log=None):
                 SELECTING_QUESTION: [
                     CallbackQueryHandler(select_question, pattern="^question:"),
                     CallbackQueryHandler(select_form, pattern="^form:"),
-                    CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$")
+                    CallbackQueryHandler(return_to_form_select, pattern="^return_to_form_select$"),
+                    CallbackQueryHandler(submit_and_email, pattern="^submit_and_email$"),
+                    CallbackQueryHandler(delete_case_menu, pattern="^delete_case_menu$"),
                 ],
                 ENTERING_ANSWER: [
                     MessageHandler(filters.TEXT & ~filters.COMMAND, enter_answer),
                     CallbackQueryHandler(return_to_question_menu, pattern="^return_to_question_menu$"),
+                    CallbackQueryHandler(submit_and_email, pattern="^submit_and_email$"),
+                    CallbackQueryHandler(delete_case_menu, pattern="^delete_case_menu$"),
                 ]
             },
             fallbacks=[CommandHandler("cancel", cancel)]
