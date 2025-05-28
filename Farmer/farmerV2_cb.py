@@ -1129,20 +1129,21 @@ def run_bot(write_log=None, stop_flag=lambda: False):
 
         try:
             write_log and write_log("🤖 Initializing bot...")
-
             await application.initialize()
             await application.start()
-            await application.updater.start_polling()
+            polling_task = asyncio.create_task(application.updater.start_polling())
+
             write_log and write_log("✅ Bot is now running!")
 
-            # Wait until the stop flag is set
+            # Wait until stop_flag is set
             while not stop_flag():
                 await asyncio.sleep(1)
 
             write_log and write_log("🛑 Stop signal received. Shutting down...")
 
-            # Shutdown cleanly
+            # Stop polling
             await application.updater.stop()
+            await polling_task  # <- WAIT for polling to end
             await application.stop()
             await application.shutdown()
 
@@ -1153,7 +1154,6 @@ def run_bot(write_log=None, stop_flag=lambda: False):
         except Exception as e:
             write_log and write_log(f"❌ Unexpected error: {e}")
 
-    # Dedicated event loop per thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
