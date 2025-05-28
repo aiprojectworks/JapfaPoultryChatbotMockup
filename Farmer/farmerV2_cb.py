@@ -1129,16 +1129,26 @@ def run_bot(write_log=None, stop_event=None):
 
         write_log and write_log("🤖 Starting polling...")
 
-        try:
-            # Run polling (this blocks until shutdown)
-            await application.run_polling(stop_signals=None)
+        await application.initialize()
+        await application.start()
 
-        except telegram.error.Conflict as e:
-            write_log and write_log(f"❌ Conflict: {e}")
-        except Exception as e:
-            write_log and write_log(f"❌ Unexpected error: {e}")
-        finally:
-            write_log and write_log("✅ Bot shutdown complete.")
+        # Start polling as a task
+        polling_task = asyncio.create_task(application.updater.start_polling())
+
+        write_log and write_log("✅ Bot is now running!")
+
+        # 🔄 Wait until stop_event is set by Streamlit
+        while not stop_event.is_set():
+            await asyncio.sleep(1)
+
+        write_log and write_log("🛑 Stop signal received. Shutting down bot...")
+
+        await application.updater.stop()
+        await polling_task  # Wait for polling to end
+        await application.stop()
+        await application.shutdown()
+
+        write_log and write_log("✅ Bot shutdown complete.")
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
