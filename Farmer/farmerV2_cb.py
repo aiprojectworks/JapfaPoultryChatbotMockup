@@ -1096,7 +1096,6 @@ def run_bot(write_log=None, stop_flag=lambda: False):
 
     async def bot_main():
         application = Application.builder().token("7685786328:AAEilDDS65J7-GB43i1LlaCJWJ3bx3i7nWs").build()
-        application.add_handler(...)
     
         while not stop_flag():
             try:
@@ -1106,7 +1105,7 @@ def run_bot(write_log=None, stop_flag=lambda: False):
                     write_log(f"❌ Bot conflict: {e}")
                 break
 
-        # Your ConversationHandler setup
+        # ConversationHandler setup
         conv = ConversationHandler(
             entry_points=[CommandHandler("start", check_for_incomplete_cases)],
             states={

@@ -50,7 +50,13 @@ st.sidebar.title("🛠️ Bot Control")
 if st.sidebar.button("▶️ Start Telegram Bot"):
     if not st.session_state.bot_started:
         st.session_state.bot_started = True
-        threading.Thread(target=lambda: run_bot(write_log=write_log), daemon=True).start()
+        threading.Thread(
+            target=lambda: run_bot(
+                write_log=write_log,
+                stop_flag=lambda: st.session_state.get("stop_flag", False)
+            ),
+            daemon=True
+        ).start()
         st.sidebar.success("✅ Bot started.")
     else:
         st.sidebar.info("ℹ️ Bot already running.")
