@@ -480,16 +480,10 @@ def generate_summary_of_all_issues():
 # Task for Status Update
 def check_case_exists(case_id: str) -> bool:
     try:
-        response = supabase_client.table("issues") \
-            .select("id") \
-            .like("case_id", f"{case_id}%") \
-            .execute()
-        
-        # response.data is a list of dicts representing rows
-        return len(response.data) > 0
-    
+        response = supabase_client.rpc("case_exists_rpc", {"case_prefix": case_id}).execute()
+        return response.data is True
     except Exception as e:
-        print(f"Error checking case ID in DB: {e}")
+        print(f"Error calling RPC case_exists_rpc: {e}")
         return False
     
 def execute_case_closing(case_id: str, reason: str) -> str:
