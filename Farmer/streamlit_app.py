@@ -18,6 +18,7 @@ from streamlit_autorefresh import st_autorefresh
 from farmerV2_cb import run_bot
 from farmer_agents import *
 
+stop_event = threading.Event()
 
 # Session-based logging instead of file-based
 def write_log(message):
@@ -54,7 +55,7 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
         threading.Thread(
             target=lambda: run_bot(
                 write_log=write_log,
-                stop_flag=lambda: st.session_state.get("stop_flag", False)
+                stop_flag=stop_event.is_set
             ),
             daemon=True
         ).start()
@@ -64,7 +65,7 @@ if st.sidebar.button("▶️ Start Telegram Bot"):
         
 if st.sidebar.button("🛑 Stop Telegram Bot"):
     if st.session_state.bot_started:
-        st.session_state.stop_flag = True
+        stop_event.set()
         st.session_state.bot_started = False
         write_log("🛑 Stop requested. Bot will shut down shortly.")
     else:
