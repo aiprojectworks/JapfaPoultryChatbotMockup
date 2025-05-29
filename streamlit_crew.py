@@ -415,7 +415,7 @@ def send_escalation_email(case_id: str, reason: str, case_info: str):
         msg = EmailMessage()
         msg["Subject"] = f"🚨 Escalation Notice: Case #{case_id}"
         msg["From"] = "japfanotifier@gmail.com"
-        msg["To"] = "2006limjy@gmail.com"
+        msg["To"] = "japfanotifier@gmail.com"
 
         msg.set_content(f"""
 A case has been escalated by a sales user.
