@@ -509,7 +509,7 @@ def execute_case_escalation(case_id: str, reason:str) -> str:
     escalate_task = Task(
         description=
         f"The case_id provided is a partial UUID (first 8 characters only), so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
-        Update the 'assigned_team' field to 'Technical' for case ID {case_id} with the escalation_reason as: {reason} in the 'issues' table.",
+        Update the 'assigned_team' field to 'Technical' with the escalation_reason as: {reason} for case ID {case_id} in the 'issues' table.",
         agent=status_update_agent,
         tools=[sql_tool],
         expected_output="Confirmation that the case has been escalated to the Technical team."
