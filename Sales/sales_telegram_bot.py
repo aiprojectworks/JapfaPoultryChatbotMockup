@@ -282,7 +282,7 @@ async def case_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             success = send_escalation_email(case_id, reason, case_info)
 
             if success:
-                execute_case_escalation(case_id)
+                execute_case_escalation(case_id, reason)
                 await update.message.reply_text(f"✅ Case {state['case_id']} has been escalated and the technical team has been notified.")
             else:
                 await update.message.reply_text("❌ Failed to send the escalation email. Please try again later.")

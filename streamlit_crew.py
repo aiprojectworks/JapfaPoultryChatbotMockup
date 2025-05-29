@@ -21,8 +21,8 @@ supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 os.environ["CREWAI_TELEMETRY_DISABLED"] = "1"
 
-class SQLiteTool(BaseTool):
-    name: str = "SQLiteTool"
+class SQLTool(BaseTool):
+    name: str = "SQLTool"
     description: str = "Run SQL queries against the poultry database."
     _client: Client = PrivateAttr()
 
@@ -50,7 +50,7 @@ Tables:
 - issue_attachments(id, case_id, file_name, file_path, uploaded_at)
 """
 
-sqlite_tool = SQLiteTool(SUPABASE_URL, SUPABASE_KEY)
+sql_tool = SQLTool(SUPABASE_URL, SUPABASE_KEY)
 
 # AGENTS
 sql_agent = Agent(
@@ -671,7 +671,7 @@ def execute_case_closing(case_id: str, reason: str) -> str:
         f"The case_id provided is only the first 8 characters of the case_id, so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
         Close case {case_id} with the close_reason as: {reason} in the issues table.",
         agent=status_update_agent,
-        tools=[sqlite_tool],
+        tools=[sql_tool],
         expected_output="Confirmation that the case has been closed. Give a simple explanation, don't mention '8 character case_id'."
     )
 
@@ -682,14 +682,14 @@ def execute_case_closing(case_id: str, reason: str) -> str:
     )
     return crew.kickoff()
 
-def execute_case_escalation(case_id: str) -> str:
+def execute_case_escalation(case_id: str, reason:str) -> str:
     """Escalate a case using CrewAI's task execution flow."""
     escalate_task = Task(
         description=
         f"The case_id provided is a partial UUID (first 8 characters only), so write queries using: case_id LIKE ? and ensure the placeholder ? will be replaced with '<value>%'. \
-        Update the 'assigned_team' field to 'Technical' for case ID {case_id} in the 'issues' table.",
+        Update the 'assigned_team' field to 'Technical' for case ID {case_id} with the escalation_reason as: {reason} in the 'issues' table.",
         agent=status_update_agent,
-        tools=[sqlite_tool],
+        tools=[sql_tool],
         expected_output="Confirmation that the case has been escalated to the Technical team."
     )
 

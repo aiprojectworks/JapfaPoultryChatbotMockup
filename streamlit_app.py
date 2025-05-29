@@ -197,7 +197,7 @@ elif main_action == "Escalate Case":
         if case_id_to_escalate and escalation_reason:
             case_info = generate_case_summary_for_email(case_id_to_escalate)
             success = send_escalation_email(case_id_to_escalate, escalation_reason, case_info)
-            result = execute_case_escalation(case_id_to_escalate)
+            result = execute_case_escalation(case_id_to_escalate, escalation_reason)
             with st.spinner("Escalating case..."):
                 st.success(f"Case {case_id_to_escalate} successfully escalated.")
         else:
