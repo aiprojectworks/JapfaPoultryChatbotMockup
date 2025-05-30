@@ -68,7 +68,7 @@ SELECTING_FORM, SELECTING_QUESTION, ENTERING_ANSWER = range(3)
         #     "type": "TEXT",
         #     "validator": lambda x: len(x.strip()) > 5,
         #     "use_agent": True
-        # }
+        # }f
 
 form_definitions = {
     "flock_farm_information": {
@@ -713,6 +713,13 @@ async def return_to_question_menu(update: Update, context: ContextTypes.DEFAULT_
     return await show_question_menu(query, user_id)
 
 async def enter_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message is None or not hasattr(update.message, "text") or update.message.text is None:
+        if update.callback_query:
+            await update.callback_query.answer()
+            await update.callback_query.edit_message_text("⚠️ Please send your answer as a text message.")
+        else:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="⚠️ Please send your answer as a text message.")
+        return ENTERING_ANSWER
     user_id = update.effective_user.id
     answer = update.message.text.strip()
     await update.message.reply_text("⏳ Validating your input. Please wait...")
