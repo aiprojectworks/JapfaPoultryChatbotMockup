@@ -580,19 +580,6 @@ def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
             print("⚠️ No response data from Supabase. Possible SQL failure.")
             print("Full response:", response)
 
-        # Insert new issue row with defaults
-        issue_sql = f"""
-            INSERT INTO issues (case_id, farm_name, status, assigned_team)
-            VALUES ('{case_id}', 'Farm A', 'Open', 'Sales')
-        """
-        issue_sql_cleaned = " ".join(issue_sql.strip().split())
-        print("ISSUE SQL:\n", issue_sql_cleaned)
-
-        issue_response = supabase_client.rpc("run_sql", {"query": issue_sql_cleaned}).execute()
-        if not issue_response.data:
-            print("⚠️ No response from Supabase for issue insertion.")
-            print("Issue insert response:", issue_response)
-
     except Exception as e:
         print("❌ Error executing dynamic SQL:", e, "\n")
 
@@ -940,7 +927,7 @@ async def submit_and_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(missing_message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
         return SELECTING_FORM
     
-        # ✅ Save to DB before sending email
+    # ✅ Save to DB before sending email
     case_id = session.get("case_id") or str(uuid.uuid4())
     session["case_id"] = case_id
 
@@ -954,6 +941,18 @@ async def submit_and_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for form_name in form_definitions.keys():
         answers = session.get("forms", {}).get(form_name, {})
         save_to_db_with_agent(user_id, form_name, case_id, answers, sql_dict)
+
+    # Insert new issue row with defaults
+    issue_sql = f"""
+        INSERT INTO issues (case_id, farm_name, status, assigned_team)
+        VALUES ('{case_id}', 'Farm A', 'Open', 'Sales')
+    """
+    issue_sql_cleaned = " ".join(issue_sql.strip().split())
+    print("ISSUE SQL:\n", issue_sql_cleaned)
+    issue_response = supabase_client.rpc("run_sql", {"query": issue_sql_cleaned}).execute()
+    if not issue_response.data:
+        print("⚠️ No response from Supabase for issue insertion.")
+        print("Issue insert response:", issue_response)
 
     logger.info(f"✅ [User {user_id}] All fields complete. Proceeding with email.")
 
