@@ -580,6 +580,19 @@ def save_to_db_with_agent(user_id, form, case_id, data, sql_dict):
             print("⚠️ No response data from Supabase. Possible SQL failure.")
             print("Full response:", response)
 
+        # Insert new issue row with defaults
+        issue_sql = f"""
+            INSERT INTO issues (case_id, farm_name, status, assigned_team)
+            VALUES ('{case_id}', 'Farm A', 'Open', 'Sales')
+        """
+        issue_sql_cleaned = " ".join(issue_sql.strip().split())
+        print("ISSUE SQL:\n", issue_sql_cleaned)
+
+        issue_response = supabase_client.rpc("run_sql", {"query": issue_sql_cleaned}).execute()
+        if not issue_response.data:
+            print("⚠️ No response from Supabase for issue insertion.")
+            print("Issue insert response:", issue_response)
+
     except Exception as e:
         print("❌ Error executing dynamic SQL:", e, "\n")
 
